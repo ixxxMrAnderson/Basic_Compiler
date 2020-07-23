@@ -138,9 +138,10 @@ unique_ptr<if_AST> if_parse(){
     printf("IF_parse\n");
     get_next_token(); //Eat IF.
     auto if_expr = expr_parse();
+    printf("THEN, %d", cur_token);
     get_next_token(); //Eat THEN.
-    unique_ptr<stmt_AST> if_stmt(new stmt_AST(stmt_parse()));
-    return make_unique<if_AST>(move(if_expr), move(if_stmt));
+    unique_ptr<expr_AST> if_goto(move(primary_parse()));
+    return make_unique<if_AST>(move(if_expr), move(if_goto));
 }
 
 unique_ptr<for_AST> for_parse(){
@@ -150,7 +151,12 @@ unique_ptr<for_AST> for_parse(){
     get_next_token(); //Eat ';'.
     auto continue_gate = expr_parse();
     auto tmp_for = make_unique<for_AST>(move(it_stmt), move(continue_gate));
-    while (cur_token != END_) tmp_for->push(stmt_parse());
+    while (cur_token != END_) {
+        printf("pushing stmt: %d\n", cur_token);
+        int line = primary_parse()->value();
+        if (cur_token == END_) break;
+        tmp_for->push(line, stmt_parse());
+    }
     get_next_token(); //Eat END.
     return tmp_for;
 }
@@ -162,8 +168,6 @@ unique_ptr<stmt_AST> rem_parse(){
 
 unique_ptr<stmt_AST> stmt_parse(){
     switch (cur_token) {
-        case LET_:
-            return make_unique<stmt_AST>(let_parse());
         case INPUT_:
             return make_unique<stmt_AST>(input_parse());
         case GOTO_:
@@ -176,6 +180,8 @@ unique_ptr<stmt_AST> stmt_parse(){
             return make_unique<stmt_AST>(for_parse());
         case REM_:
             return rem_parse();
+        default:
+            return make_unique<stmt_AST>(let_parse());
     }
 }
 

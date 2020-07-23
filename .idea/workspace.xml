@@ -11,7 +11,19 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="096f8c77-de77-476d-9ea8-dadcb9ebebe7" name="Default Changelist" comment="" />
+    <list default="true" id="096f8c77-de77-476d-9ea8-dadcb9ebebe7" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/AST.h" beforeDir="false" afterPath="$PROJECT_DIR$/AST.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Lexer.h" beforeDir="false" afterPath="$PROJECT_DIR$/Lexer.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Parser.h" beforeDir="false" afterPath="$PROJECT_DIR$/Parser.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/Basic_Compiler.exe" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/Basic_Compiler.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/main.cpp.obj" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/main.cpp.obj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/objects.a" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/objects.a" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/testcases/basic_test/basic_9.txt" beforeDir="false" afterPath="$PROJECT_DIR$/testcases/basic_test/basic_9.txt" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -21,7 +33,11 @@
     <option name="formatViaClangd" value="false" />
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
   <component name="ProjectId" id="1eekuULyb8ExIpGDvlqxYz21dEO" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showExcludedFiles" value="true" />
@@ -29,6 +45,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
   </component>
@@ -57,6 +74,7 @@
       <workItem from="1595307025306" duration="52000" />
       <workItem from="1595380422456" duration="33763000" />
       <workItem from="1595460647119" duration="20220000" />
+      <workItem from="1595487358249" duration="3503000" />
     </task>
     <servers />
   </component>
@@ -68,26 +86,26 @@
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state x="413" y="62" key="FileChooserDialogImpl/0.0.1366.728@0.0.1366.728" timestamp="1595138449438" />
-    <state width="1313" height="166" key="GridCell.Tab.0.bottom" timestamp="1595487017880">
+    <state width="1313" height="141" key="GridCell.Tab.0.bottom" timestamp="1595490854559">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1313" height="166" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1595487017880" />
-    <state width="1313" height="166" key="GridCell.Tab.0.center" timestamp="1595487017880">
+    <state width="1313" height="141" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1595490854559" />
+    <state width="1313" height="141" key="GridCell.Tab.0.center" timestamp="1595490854559">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1313" height="166" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1595487017880" />
-    <state width="1313" height="166" key="GridCell.Tab.0.left" timestamp="1595487017880">
+    <state width="1313" height="141" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1595490854559" />
+    <state width="1313" height="141" key="GridCell.Tab.0.left" timestamp="1595490854559">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1313" height="166" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1595487017880" />
-    <state width="1313" height="166" key="GridCell.Tab.0.right" timestamp="1595487017880">
+    <state width="1313" height="141" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1595490854559" />
+    <state width="1313" height="141" key="GridCell.Tab.0.right" timestamp="1595490854559">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1313" height="166" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1595487017880" />
-    <state x="300" y="147" key="com.intellij.ide.util.TipDialog" timestamp="1595460660844">
+    <state width="1313" height="141" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1595490854559" />
+    <state x="300" y="147" key="com.intellij.ide.util.TipDialog" timestamp="1595487394727">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="300" y="147" key="com.intellij.ide.util.TipDialog/0.0.1366.728@0.0.1366.728" timestamp="1595460660844" />
+    <state x="300" y="147" key="com.intellij.ide.util.TipDialog/0.0.1366.728@0.0.1366.728" timestamp="1595487394727" />
     <state x="255" y="159" key="run.anything.popup" timestamp="1595425920050">
       <screen x="0" y="0" width="1366" height="728" />
     </state>

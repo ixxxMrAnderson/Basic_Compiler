@@ -150,8 +150,8 @@ public:
     stmt_AST(unique_ptr<input_AST> stmt_): input_stmt(move(stmt_)){isrem_ = 0;}
     stmt_AST(unique_ptr<exit_AST> stmt_): exit_stmt(move(stmt_)){isrem_ = 0;}
     stmt_AST(unique_ptr<goto_AST> stmt_): goto_stmt(move(stmt_)){isrem_ = 0;}
-    stmt_AST(unique_ptr<if_AST> stmt_);// if_stmt(new if_AST(*stmt_)){isrem_ = 0;}
-    stmt_AST(unique_ptr<for_AST> stmt_);// for_stmt(new for_AST(*stmt_)){isrem_ = 0;}
+    stmt_AST(unique_ptr<if_AST> stmt_);
+    stmt_AST(unique_ptr<for_AST> stmt_);
     stmt_AST(stmt_AST &other);
     bool isrem(){return isrem_;}
     void generate();
@@ -160,38 +160,47 @@ public:
 class if_AST{
 public:
     unique_ptr<expr_AST> if_expr;
-    unique_ptr<stmt_AST> if_stmt;
+    unique_ptr<expr_AST> if_goto;
     if_AST(){}
-    if_AST(unique_ptr<expr_AST> if_expr_, unique_ptr<stmt_AST> if_stmt_)
-            :if_stmt(move(if_stmt)), if_expr(move(if_expr_)){}
+    if_AST(unique_ptr<expr_AST> if_expr_, unique_ptr<expr_AST> if_goto_)
+            :if_goto(move(if_goto_)), if_expr(move(if_expr_)){}
     if_AST(if_AST &other)
-            :if_stmt(move(other.if_stmt)), if_expr(move(other.if_expr)){}
+            :if_goto(move(other.if_goto)), if_expr(move(other.if_expr)){}
     void generate(){
         printf("IF_stmt ");
         if_expr->generate();
-        printf("\nTHEN ");
-        if_stmt->generate();
+        printf(" THEN ");
+        if_goto->generate();
+        printf("\n");
     }
 };
 
 class for_AST{
 public:
-    vector<unique_ptr<stmt_AST>> stmts;
+    map<int, unique_ptr<stmt_AST>> stmts;
+    vector<int> lines;
     unique_ptr<stmt_AST> it_stmt = NULL;
     unique_ptr<expr_AST> continue_gate = NULL;
     for_AST(){}
     for_AST(unique_ptr<stmt_AST> it_stmt_, unique_ptr<expr_AST> continue_gate_)
             :it_stmt(move(it_stmt_)), continue_gate(move(continue_gate_)){}
-    void push(unique_ptr<stmt_AST> stmt){stmts.push_back(move(stmt));}
+    void push(int line, unique_ptr<stmt_AST> stmt){
+        printf("inside for: %d\n", line);
+        stmts[line] = move(stmt);
+        lines.push_back(line);
+    }
     for_AST(for_AST &other)
             :it_stmt(move(other.it_stmt)), continue_gate(move(other.continue_gate)){}
     void generate(){
         printf("FOR_stmt ");
         it_stmt->generate();
-        printf("(gate:) ");
+        printf("  gate: ");
         continue_gate->generate();
         printf("\n");
-        for (int i = 0; i < stmts.size(); ++i) stmts[i]->generate();
+        for (int i = 0; i < lines.size(); ++i){
+            printf("  line %d: ", lines[i]);
+            stmts[lines[i]]->generate();
+        }
         printf("END FOR\n");
     }
 };

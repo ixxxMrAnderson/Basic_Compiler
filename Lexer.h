@@ -65,7 +65,23 @@ int get_token(){
     }
     else if (tmp_char == EOF) return EOF_;
     else if (tmp_char == '+'){binop_token = ADD; return binop_;}
-    else if (tmp_char == '-'){binop_token = SUB; return binop_;}
+    else if (tmp_char == '-'){
+        tmp_char = getchar();
+        if (isdigit(tmp_char)){
+            string num_str = "-";
+            do {
+                num_str += tmp_char;
+                tmp_char = getchar();
+            } while (isdigit(tmp_char));
+            cin.putback(tmp_char);
+            number_token = strtod(num_str.c_str(), 0);
+            return number_;
+        } else {
+            cin.putback(tmp_char);
+            binop_token = SUB;
+            return binop_;
+        }
+    }
     else if (tmp_char == '*'){binop_token = TIMES; return binop_;}
     else if (tmp_char == '/'){binop_token = DIVIDE; return binop_;}
     else if (tmp_char == '<'){
