@@ -1,0 +1,3 @@
+D:/ClionProjects/Basic Compiler/cmake-build-debug/CMakeFiles/Basic_Compiler.dir
+D:/ClionProjects/Basic Compiler/cmake-build-debug/CMakeFiles/edit_cache.dir
+D:/ClionProjects/Basic Compiler/cmake-build-debug/CMakeFiles/rebuild_cache.dir

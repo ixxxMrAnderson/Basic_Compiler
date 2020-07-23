@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+D:/ClionProjects/Basic Compiler/AST.h
+vector
+-
+map
+-
+memory
+-
+utility
+-
+cstring
+-
+
+D:/ClionProjects/Basic Compiler/Lexer.h
+AST.h
+D:/ClionProjects/Basic Compiler/AST.h
+
+D:/ClionProjects/Basic Compiler/Parser.h
+Lexer.h
+D:/ClionProjects/Basic Compiler/Lexer.h
+
+D:/ClionProjects/Basic Compiler/main.cpp
+iostream
+-
+Parser.h
+D:/ClionProjects/Basic Compiler/Parser.h
+

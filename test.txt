@@ -1,0 +1,7 @@
+00 12 a && b
+00 REM asdasdasdasdasd00909012ejkds
+00 REM asdasd
+00 REM basic8.txt
+00 134 add < 12
+00 23 != 123
+00 asd + dsa * asd || 1
