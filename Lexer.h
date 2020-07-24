@@ -14,14 +14,19 @@ bool jd_start = 1;
 int get_token(){
     int tmp_char = ' ';
     string tmp_str;
-    while (isspace(tmp_char) && tmp_char != '\n') tmp_char = getchar();
-    if (tmp_char == '\n' || jd_start){
+    while (isspace(tmp_char)){
+        if (tmp_char == '\n') jd_start = 1;
+        tmp_char = getchar();
+    }
+    if (jd_start){
         jd_start = 0;
+        while(!isdigit(tmp_char) && tmp_char != EOF) tmp_char = getchar();
+        if (tmp_char == EOF) return EOF_;
         string num_str;
-        do {
+        while (isdigit(tmp_char)){
             num_str += tmp_char;
             tmp_char = getchar();
-        } while (isdigit(tmp_char));
+        }
         cin.putback(tmp_char);
         number_token = strtod(num_str.c_str(), 0);
         return line_;
@@ -110,6 +115,7 @@ int get_token(){
         if ((tmp_char = getchar()) == '|'){binop_token = OR; return binop_;}
         else {cin.putback(tmp_char); return int('|');}
     } else return int(tmp_char);
+    return 0;
 }
 
 #endif //BASIC_COMPILER_LEXER_H

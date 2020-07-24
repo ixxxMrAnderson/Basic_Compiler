@@ -36,7 +36,7 @@ unique_ptr<expr_AST> paren_parse(){
     get_next_token(); // Eat '('.
     auto contents = expr_parse();
     if (!contents) return nullptr;
-    if (cur_token != ')') return log_error("expected ')'");
+    //if (cur_token != ')') return log_error("expected ')'");
     get_next_token(); // Eat ')'.
     printf("Parsed a paren expr\n");
     return contents;
@@ -51,12 +51,27 @@ unique_ptr<expr_AST> primary_parse(){
             return number_parse();
         case identifier_:
             return identifier_parse();
-        case '(':
+            case '(': case '[':
             return paren_parse();
     }
 }
 
 map<BINOP, int> binop_precedence; // this holds the precedence for each binary operator that is defined.
+void binop_login(){
+    binop_precedence[OR] = 20;
+    binop_precedence[AND] = 40;
+    binop_precedence[EQ] = 60;
+    binop_precedence[NOT_EQ] = 60;
+    binop_precedence[SMALLER] = 80;
+    binop_precedence[GREATER] = 80;
+    binop_precedence[SMALLER_EQ] = 80;
+    binop_precedence[GREATER_EQ] = 80;
+    binop_precedence[ADD] = 100;
+    binop_precedence[SUB] = 100;
+    binop_precedence[DIVIDE] = 120;
+    binop_precedence[TIMES] = 120;
+}
+
 int get_precedence(){
     if (cur_token != binop_) return -1;
     int prec = binop_precedence[binop_token];
@@ -104,9 +119,11 @@ unique_ptr<let_AST> let_parse(){
     printf("LET_parse\n");
     if (cur_token == LET_) get_next_token(); //Eat LET.
     auto lval = primary_parse();
+    unique_ptr<expr_AST> index = NULL;
+    if (cur_token == '[') index = primary_parse();
     get_next_token(); //Eat '='.
     auto rexpr = expr_parse();
-    return make_unique<let_AST>(move(lval), move(rexpr));
+    return make_unique<let_AST>(move(lval), move(rexpr), move(index));
 }
 
 unique_ptr<input_AST> input_parse(){
@@ -198,6 +215,7 @@ program_AST main_parse(){
             auto st_ = stmt_parse();
             if (!st_->isrem()) prog.push(line_, move(st_));
         }
+        if (cur_token == ';') get_next_token();
         printf("<loop over\n");
     }
 }

@@ -54,25 +54,21 @@ public:
     expr_AST(unique_ptr<atom_AST> atom_expr_): atom_expr(move(atom_expr_)){
         LHS = NULL, RHS = NULL;
     }
-    expr_AST(expr_AST &other)
-            : binop(other.binop), atom_expr(move(other.atom_expr)), LHS(move(other.LHS)), RHS(move(other.RHS)){
-        printf("constructor\n");
-    }
+//    expr_AST(expr_AST &other)
+//            : binop(other.binop), atom_expr(move(other.atom_expr)), LHS(move(other.LHS)), RHS(move(other.RHS)){
+//        printf("constructor\n");
+//    }
     bool isatom() const{return atom_expr != NULL;}
     int value(){return atom_expr->atom_value;}
     string name(){return atom_expr->atom_name;}
-    void print_() const {
-        if (isatom()) printf("is atom %d, %s\n", atom_expr->atom_value, atom_expr->atom_name.c_str());
-        else printf("not atom\n");
-        if (isatom()) printf("LHS_NULL:%d, RHS_NULL: %d\n", (LHS==NULL), (RHS==NULL));
-    }
     void generate(){
         if (atom_expr != NULL) return atom_expr->generate();
         else {
+            printf("(");
             LHS->generate();
             printf(" %s ", binop_str[binop]);
             RHS->generate();
-
+            printf(")");
         }
     }
 };
@@ -81,14 +77,20 @@ class let_AST{
 public:
     unique_ptr<expr_AST> lvalue;
     unique_ptr<expr_AST> rvalue;
+    unique_ptr<expr_AST> index;
     let_AST(){}
-    let_AST(unique_ptr<expr_AST> lvalue_, unique_ptr<expr_AST> rvalue_)
-            : lvalue(move(lvalue_)), rvalue(move(rvalue_)){}
-    string lval(){return lvalue->name();}
-    let_AST(let_AST &other)
-            :lvalue(move(other.lvalue)), rvalue(move(other.rvalue)){}
+    let_AST(unique_ptr<expr_AST> lvalue_, unique_ptr<expr_AST> rvalue_, unique_ptr<expr_AST> index_)
+            : lvalue(move(lvalue_)), rvalue(move(rvalue_)), index(move(index_)){}
+//    let_AST(let_AST &other)
+//            :lvalue(move(other.lvalue)), rvalue(move(other.rvalue)){}
     void generate(){
-        printf("LET_stmt %s = ", lvalue->name().c_str());
+        printf("LET_stmt %s", lvalue->name().c_str());
+        if (index != NULL) {
+            printf("[");
+            index->generate();
+            printf("]");
+        }
+        printf(" = ");
         rvalue->generate();
         printf("\n");
     }
@@ -115,8 +117,8 @@ public:
     exit_AST(){}
     exit_AST(unique_ptr<expr_AST> exit_expr_)
             : exit_expr(move(exit_expr_)){}
-    exit_AST(exit_AST &other)
-            : exit_expr(move(other.exit_expr)){}
+//    exit_AST(exit_AST &other)
+//            : exit_expr(move(other.exit_expr)){}
     void generate(){
         printf("EXIT_stmt ");
         exit_expr->generate();
@@ -152,7 +154,7 @@ public:
     stmt_AST(unique_ptr<goto_AST> stmt_): goto_stmt(move(stmt_)){isrem_ = 0;}
     stmt_AST(unique_ptr<if_AST> stmt_);
     stmt_AST(unique_ptr<for_AST> stmt_);
-    stmt_AST(stmt_AST &other);
+//    stmt_AST(stmt_AST &other);
     bool isrem(){return isrem_;}
     void generate();
 };
@@ -164,8 +166,8 @@ public:
     if_AST(){}
     if_AST(unique_ptr<expr_AST> if_expr_, unique_ptr<expr_AST> if_goto_)
             :if_goto(move(if_goto_)), if_expr(move(if_expr_)){}
-    if_AST(if_AST &other)
-            :if_goto(move(other.if_goto)), if_expr(move(other.if_expr)){}
+//    if_AST(if_AST &other)
+//            :if_goto(move(other.if_goto)), if_expr(move(other.if_expr)){}
     void generate(){
         printf("IF_stmt ");
         if_expr->generate();
@@ -185,12 +187,12 @@ public:
     for_AST(unique_ptr<stmt_AST> it_stmt_, unique_ptr<expr_AST> continue_gate_)
             :it_stmt(move(it_stmt_)), continue_gate(move(continue_gate_)){}
     void push(int line, unique_ptr<stmt_AST> stmt){
-        printf("inside for: %d\n", line);
+//        printf("inside for: %d\n", line);
         stmts[line] = move(stmt);
         lines.push_back(line);
     }
-    for_AST(for_AST &other)
-            :it_stmt(move(other.it_stmt)), continue_gate(move(other.continue_gate)){}
+//    for_AST(for_AST &other)
+//            :it_stmt(move(other.it_stmt)), continue_gate(move(other.continue_gate)){}
     void generate(){
         printf("FOR_stmt ");
         it_stmt->generate();
@@ -209,9 +211,9 @@ stmt_AST::stmt_AST(unique_ptr<if_AST> stmt_)
             : if_stmt(move(stmt_)){isrem_ = 0;}
 stmt_AST::stmt_AST(unique_ptr<for_AST> stmt_)
             : for_stmt(move(stmt_)){isrem_ = 0;}
-stmt_AST::stmt_AST(stmt_AST &other)
-: if_stmt(move(other.if_stmt)), for_stmt(move(other.for_stmt)), goto_stmt(move(other.goto_stmt))
-, exit_stmt(move(other.exit_stmt)), input_stmt(move(other.input_stmt)), let_stmt(move(other.let_stmt)){isrem_ = other.isrem_;}
+//stmt_AST::stmt_AST(stmt_AST &other)
+//: if_stmt(move(other.if_stmt)), for_stmt(move(other.for_stmt)), goto_stmt(move(other.goto_stmt))
+//, exit_stmt(move(other.exit_stmt)), input_stmt(move(other.input_stmt)), let_stmt(move(other.let_stmt)){isrem_ = other.isrem_;}
 void stmt_AST::generate(){
     if (let_stmt != NULL) return let_stmt->generate();
     if (input_stmt != NULL) return input_stmt->generate();
