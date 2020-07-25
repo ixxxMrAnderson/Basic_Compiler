@@ -44,16 +44,20 @@ unique_ptr<expr_AST> paren_parse(){
 
 //handle atom and paren unit
 unique_ptr<expr_AST> primary_parse(){
+    auto return_ = make_unique<expr_AST>();
     switch (cur_token){
-        default:
-            return log_error("unknown token when expecting an expression");
         case number_: case line_:
             return number_parse();
         case identifier_:
-            return identifier_parse();
-            case '(': case '[':
+            return_ =  identifier_parse();
+            break;
+        case '(':
             return paren_parse();
+        default:
+            return_ = NULL;
     }
+    while (cur_token == '[') return_->push(paren_parse());
+    return return_;
 }
 
 map<BINOP, int> binop_precedence; // this holds the precedence for each binary operator that is defined.
@@ -109,18 +113,11 @@ unique_ptr<expr_AST> expr_parse(){
     return binop_RHS_parse(0, move(LHS));
 }
 
-//handle exprssion unit
-//void top_expr_parse(){
-//    if (expr_parse()) printf("Parsed a top-level expr\n");
-//    else get_next_token();
-//}
-
 unique_ptr<let_AST> let_parse(){
     printf("LET_parse\n");
     if (cur_token == LET_) get_next_token(); //Eat LET.
-    auto lval = primary_parse();
+    auto lval = expr_parse();
     unique_ptr<expr_AST> index = NULL;
-    if (cur_token == '[') index = primary_parse();
     get_next_token(); //Eat '='.
     auto rexpr = expr_parse();
     return make_unique<let_AST>(move(lval), move(rexpr), move(index));
@@ -152,10 +149,10 @@ unique_ptr<exit_AST> exit_parse(){
 
 unique_ptr<stmt_AST> stmt_parse();
 unique_ptr<if_AST> if_parse(){
-    printf("IF_parse\n");
+    printf("IF_parse");
     get_next_token(); //Eat IF.
     auto if_expr = expr_parse();
-    printf("THEN, %d", cur_token);
+    //printf("THEN\n", cur_token);
     get_next_token(); //Eat THEN.
     unique_ptr<expr_AST> if_goto(move(primary_parse()));
     return make_unique<if_AST>(move(if_expr), move(if_goto));
@@ -169,7 +166,7 @@ unique_ptr<for_AST> for_parse(){
     auto continue_gate = expr_parse();
     auto tmp_for = make_unique<for_AST>(move(it_stmt), move(continue_gate));
     while (cur_token != END_) {
-        printf("pushing stmt: %d\n", cur_token);
+        //printf("pushing stmt: %d\n", cur_token);
         int line = primary_parse()->value();
         if (cur_token == END_) break;
         tmp_for->push(line, stmt_parse());

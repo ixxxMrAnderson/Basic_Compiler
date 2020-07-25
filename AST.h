@@ -47,6 +47,7 @@ public:
     BINOP binop;
     unique_ptr<atom_AST> atom_expr;
     unique_ptr<expr_AST> LHS, RHS;
+    vector<unique_ptr<expr_AST>> indexes;
     expr_AST(){}
     expr_AST(BINOP op, unique_ptr<expr_AST> LHS_, unique_ptr<expr_AST> RHS_): binop(op), LHS(move(LHS_)), RHS(move(RHS_)){
         atom_expr = NULL;
@@ -61,8 +62,16 @@ public:
     bool isatom() const{return atom_expr != NULL;}
     int value(){return atom_expr->atom_value;}
     string name(){return atom_expr->atom_name;}
+    void push(unique_ptr<expr_AST> index_){indexes.push_back(move(index_));}
     void generate(){
-        if (atom_expr != NULL) return atom_expr->generate();
+        if (atom_expr != NULL){
+            atom_expr->generate();
+            for (int i = 0; i < indexes.size(); ++i){
+                printf("[");
+                indexes[i]->generate();
+                printf("]");
+            }
+        }
         else {
             printf("(");
             LHS->generate();
@@ -77,19 +86,14 @@ class let_AST{
 public:
     unique_ptr<expr_AST> lvalue;
     unique_ptr<expr_AST> rvalue;
-    unique_ptr<expr_AST> index;
     let_AST(){}
     let_AST(unique_ptr<expr_AST> lvalue_, unique_ptr<expr_AST> rvalue_, unique_ptr<expr_AST> index_)
-            : lvalue(move(lvalue_)), rvalue(move(rvalue_)), index(move(index_)){}
+            : lvalue(move(lvalue_)), rvalue(move(rvalue_)){}
 //    let_AST(let_AST &other)
 //            :lvalue(move(other.lvalue)), rvalue(move(other.rvalue)){}
     void generate(){
-        printf("LET_stmt %s", lvalue->name().c_str());
-        if (index != NULL) {
-            printf("[");
-            index->generate();
-            printf("]");
-        }
+        printf("LET_stmt ");
+        lvalue->generate();
         printf(" = ");
         rvalue->generate();
         printf("\n");
