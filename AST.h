@@ -90,13 +90,6 @@ public:
     let_AST(){}
     let_AST(unique_ptr<expr_AST> lvalue_, unique_ptr<expr_AST> rvalue_, unique_ptr<expr_AST> index_)
             : lvalue(move(lvalue_)), rvalue(move(rvalue_)){}
-    void generate(){
-        printf("LET ");
-        printf("%s", lvalue->generate_str().c_str());
-        printf(" = ");
-        printf("%s", rvalue->generate_str().c_str());
-        printf("\n");
-    }
     void generate_CFG(CFG_node &node){
         lvalue->generate_CFG(node);
         rvalue->generate_CFG(node);
@@ -109,19 +102,6 @@ class input_AST{
 public:
     input_AST(){}
     void push(unique_ptr<expr_AST> identifier){identifiers.push_back(move(identifier));}
-    void generate(){
-        printf("INPUT ");
-        for (int i = 0; i < identifiers.size(); ++i){
-            auto iden_ = identifiers[i]->name().c_str();
-            if (iden_ == ""){
-                printf("Failed. INPUT statement must follow a list of identifiers.\n");
-                exit(0);
-            }
-            printf("%s", iden_);
-            if (i == identifiers.size() - 1) printf("\n");
-            else printf(", ");
-        }
-    }
     void generate_CFG(CFG_node &node){
         for (int i = 0; i < identifiers.size(); ++i){
             INPUT_ins(node, identifiers[i]->generate_str());
@@ -135,11 +115,6 @@ public:
     exit_AST(){}
     exit_AST(unique_ptr<expr_AST> exit_expr_)
             : exit_expr(move(exit_expr_)){}
-    void generate(){
-        printf("EXIT ");
-        printf("%s", exit_expr->generate_str().c_str());
-        printf("\n");
-    }
     void generate_CFG(CFG_node &node){
         exit_expr->generate_CFG(node);
         EXIT_ins(node, exit_expr->generate_str());
@@ -150,7 +125,6 @@ class goto_AST{
 public:
     int go_to;
     goto_AST(int go_to_ = 0): go_to(go_to_){}
-    void generate(){printf("GOTO %d\n", go_to);}
     void generate_CFG(CFG_node &node){GOTO_ins(node, go_to);}
 };
 
@@ -186,13 +160,6 @@ public:
     if_AST(){}
     if_AST(unique_ptr<expr_AST> if_expr_, unique_ptr<expr_AST> if_goto_)
             :if_goto(move(if_goto_)), if_expr(move(if_expr_)){}
-    void generate(){
-        printf("IF ");
-        printf("%s", if_expr->generate_str().c_str());
-        printf(" THEN ");
-        printf("%s", if_goto->generate_str().c_str());
-        printf("\n");
-    }
     void generate_CFG(CFG_node &node){
         if_expr->generate_CFG(node);
         if_goto->generate_CFG(node);
@@ -211,29 +178,19 @@ public:
     for_AST(unique_ptr<stmt_AST> it_stmt_, unique_ptr<expr_AST> continue_gate_, int for_line_)
             :it_stmt(move(it_stmt_)), continue_gate(move(continue_gate_)), for_line(for_line_){}
     void push(int line, unique_ptr<stmt_AST> stmt){stmts[line] = move(stmt);}
-    void generate(){
-        printf("FOR ");
-        it_stmt->generate();
-        printf("%s\n", continue_gate->generate_str().c_str());
-        for (auto i = stmts.begin(); i != stmts.end(); ++i){
-            printf("%d ", i->first);
-            i->second->generate();
-        }
-        printf("%d END FOR\n", end_for);
-    }
     void generate_CFG(){
         CFG_node node(after_end_for);
         it_stmt->let_stmt->generate_CFG(node);
         continue_gate->generate_CFG(node);
         BEQ_ins(node, continue_gate->generate_str(), after_end_for, 0);
-        printf("(jump_%d)\n", after_end_for);
+//        printf("(jump_%d)\n", after_end_for);
         CFG[for_line] = node;
         generate_CFG_(move(stmts), end_for);
         CFG_node node_(for_line);
         GOTO_ins(node_, for_line);
         CFG[end_for] = node_;
-        printf("(addr_%d)\nENDFOR\n", end_for);
-        printf("(jump_%d)\n", for_line);
+//        printf("(addr_%d)\nENDFOR\n", end_for);
+//        printf("(jump_%d)\n", for_line);
     }
 };
 
@@ -242,25 +199,10 @@ stmt_AST::stmt_AST(unique_ptr<if_AST> stmt_)
 stmt_AST::stmt_AST(unique_ptr<for_AST> stmt_)
             : for_stmt(move(stmt_)){isrem_ = 0;}
 
-void stmt_AST::generate(){
-    if (let_stmt) return let_stmt->generate();
-    if (input_stmt) return input_stmt->generate();
-    if (exit_stmt) return exit_stmt->generate();
-    if (goto_stmt) return goto_stmt->generate();
-    if (if_stmt) return if_stmt->generate();
-    if (for_stmt) return for_stmt->generate();
-}
-
 class program_AST{
     map<int, unique_ptr<stmt_AST>> stmts;
 public:
     void push(int line_, unique_ptr<stmt_AST> stmt){stmts[line_] = move(stmt);}
-    void generate(){
-        for (auto i = stmts.begin(); i != stmts.end(); ++i){
-            printf("%d ", i->first);
-            i->second->generate();
-        }
-    }
     void generate_CFG(){generate_CFG_(move(stmts), -2);}
 };
 
@@ -270,7 +212,7 @@ void generate_CFG_(map<int, unique_ptr<stmt_AST>> stmts, int jump_){
     while(i != stmts.end()){
         CFG_node node;
         addr = i->first;
-        printf("(addr_%d)\n", addr);
+//        printf("(addr_%d)\n", addr);
         if (i->second->let_stmt) {
             (i++)->second->let_stmt->generate_CFG(node);
             jump = -1;
@@ -296,7 +238,7 @@ void generate_CFG_(map<int, unique_ptr<stmt_AST>> stmts, int jump_){
             jump = -2;
         }
         if (i == stmts.end() && jump < 0) jump = jump_;
-        printf("(jump_%d)\n", jump);
+//        printf("(jump_%d)\n", jump);
         node.jump = jump;
         CFG[addr] = node;
     }

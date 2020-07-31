@@ -80,9 +80,9 @@ void print_CFG(){
         for (int j = 0; j < i->second.instructions.size(); ++j){
             i->second.instructions[j].print_dump();
             //i->second.instructions[j].print_data();
-            printf("\n");
+            //printf("\n");
         }
-        if (i->second.jump >= 0 || i->second.jump == -2) printf("block_over\n\n");
+        if (i->second.jump >= 0 || i->second.jump == -2) printf("\n\n");
     }
 }
 
@@ -113,13 +113,13 @@ bool isdigit_(string x){
 }
 
 void LOAD_ins(CFG_node &node, int rs, int rd){
-    printf("LOAD, %s(%d)\n", reg2val[rd].c_str(), rd);
+//    printf("LOAD, %s(%d)\n", reg2val[rd].c_str(), rd);
     uint32_t code = ((rs & 0b11111) << 15) | ((rd & 0b11111) << 7) | (1 << 13) | 0b0000011;
     node.instructions.push_back(instruction(code, LW, rd, rs, 0, 0));
 }
 
 void STORE_ins(CFG_node &node, int rs1, int rs2){
-    printf("STORE, %s(%d)\n", reg2val[rs1].c_str(), rs1);
+//    printf("STORE, %s(%d)\n", reg2val[rs1].c_str(), rs1);
     uint32_t code = ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15) | (1 << 13) | 0b0100011;
     node.instructions.push_back(instruction(code, SW, 0, rs1, rs2, 0));
 }
@@ -238,8 +238,11 @@ void BINOP_ins(CFG_node &node, BINOP binop, string LHS, string RHS){
 }
 
 void MOVE_ins(CFG_node &node, string to, string from){
-    ADDI_ins(node, new_mem_space(from));
-    LOAD_ins(node, node.latest_rd(), new_reg());
+    if (isdigit_(from)) ADDI_ins(node, strtod(from.c_str(), 0));
+    else{
+        ADDI_ins(node, new_mem_space(from));
+        LOAD_ins(node, node.latest_rd(), new_reg());
+    }
     int addr = node.latest_rd();
     ADDI_ins(node, new_mem_space(to));
     STORE_ins(node, node.latest_rd(), addr);
@@ -247,7 +250,9 @@ void MOVE_ins(CFG_node &node, string to, string from){
 
 void INPUT_ins(CFG_node &node, string to){
     int tmp = 0;
+    printf("INPUT_%s: ", to.c_str());
     scanf("%d", &tmp);
+    printf("\n");
     ADDI_ins(node, tmp, to);
     int rs = node.latest_rd();
     ADDI_ins(node, new_mem_space(to));
@@ -341,7 +346,7 @@ void modify_CFG(){
             printf("\n\n");
         }
     }
-    printf("\ntotal: %08X\n", passed_);
+    //printf("\ntotal: %08X\n", passed_);
 }
 
 

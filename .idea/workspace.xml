@@ -14,20 +14,12 @@
     <list default="true" id="096f8c77-de77-476d-9ea8-dadcb9ebebe7" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AST.h" beforeDir="false" afterPath="$PROJECT_DIR$/AST.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parser.h" beforeDir="false" afterPath="$PROJECT_DIR$/Parser.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/Basic_Compiler.cbp" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/Basic_Compiler.cbp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Instruction Generator.h" beforeDir="false" afterPath="$PROJECT_DIR$/Instruction Generator.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/Basic_Compiler.exe" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/Basic_Compiler.exe" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/CXX.includecache" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/CXX.includecache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/depend.internal" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/depend.internal" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/depend.make" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/depend.make" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/main.cpp.obj" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/main.cpp.obj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/objects.a" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/objects.a" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/testcases/control_test/control_1.txt" beforeDir="false" afterPath="$PROJECT_DIR$/testcases/control_test/control_1.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/testcases/op_test/op_2.txt" beforeDir="false" afterPath="$PROJECT_DIR$/testcases/op_test/op_2.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/testcases/op_test/op_4.txt" beforeDir="false" afterPath="$PROJECT_DIR$/testcases/op_test/op_4.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/testcases/op_test/op_6.txt" beforeDir="false" afterPath="$PROJECT_DIR$/testcases/op_test/op_6.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -86,7 +78,7 @@
       <workItem from="1595984172699" duration="28625000" />
       <workItem from="1596070328020" duration="8249000" />
       <workItem from="1596116464543" duration="3545000" />
-      <workItem from="1596120854247" duration="22763000" />
+      <workItem from="1596120854247" duration="31151000" />
     </task>
     <servers />
   </component>
@@ -98,22 +90,22 @@
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state x="413" y="62" key="FileChooserDialogImpl/0.0.1366.728@0.0.1366.728" timestamp="1596084784848" />
-    <state width="1313" height="537" key="GridCell.Tab.0.bottom" timestamp="1596187656075">
+    <state width="1313" height="333" key="GridCell.Tab.0.bottom" timestamp="1596204928977">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1313" height="537" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1596187656075" />
-    <state width="1313" height="537" key="GridCell.Tab.0.center" timestamp="1596187656074">
+    <state width="1313" height="333" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1596204928977" />
+    <state width="1313" height="333" key="GridCell.Tab.0.center" timestamp="1596204928977">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1313" height="537" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1596187656074" />
-    <state width="1313" height="537" key="GridCell.Tab.0.left" timestamp="1596187656074">
+    <state width="1313" height="333" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1596204928977" />
+    <state width="1313" height="333" key="GridCell.Tab.0.left" timestamp="1596204928977">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1313" height="537" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1596187656074" />
-    <state width="1313" height="537" key="GridCell.Tab.0.right" timestamp="1596187656075">
+    <state width="1313" height="333" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1596204928977" />
+    <state width="1313" height="333" key="GridCell.Tab.0.right" timestamp="1596204928977">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1313" height="537" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1596187656075" />
+    <state width="1313" height="333" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1596204928977" />
     <state x="300" y="147" key="com.intellij.ide.util.TipDialog" timestamp="1596120912964">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
