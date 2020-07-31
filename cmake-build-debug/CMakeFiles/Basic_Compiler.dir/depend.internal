@@ -3,6 +3,7 @@
 
 CMakeFiles/Basic_Compiler.dir/main.cpp.obj
  D:/ClionProjects/Basic Compiler/AST.h
+ D:/ClionProjects/Basic Compiler/Instruction Generator.h
  D:/ClionProjects/Basic Compiler/Lexer.h
  D:/ClionProjects/Basic Compiler/Parser.h
  D:/ClionProjects/Basic Compiler/main.cpp

@@ -83,6 +83,9 @@
 		<Unit filename="D:/ClionProjects/Basic Compiler/AST.h">
 			<Option target="Basic_Compiler"/>
 		</Unit>
+		<Unit filename="D:/ClionProjects/Basic Compiler/Instruction Generator.h">
+			<Option target="Basic_Compiler"/>
+		</Unit>
 		<Unit filename="D:/ClionProjects/Basic Compiler/Lexer.h">
 			<Option target="Basic_Compiler"/>
 		</Unit>

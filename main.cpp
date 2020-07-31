@@ -1,11 +1,14 @@
 #include <iostream>
+#include <bitset>
 #include "Parser.h"
 
 int main() {
-    freopen("D:\\ClionProjects\\Basic Compiler\\testcases\\op_test\\op_10.txt", "r", stdin);
+    freopen("D:\\ClionProjects\\Basic Compiler\\testcases\\op_test\\op_2.txt", "r", stdin);
     binop_login();
-    get_next_token();
-    program_AST prog = main_parse();
-    printf("------------------------------------------\n");
-    prog.generate();
+    auto prog = main_parse();
+    freopen("CON", "r", stdin);
+    prog.generate_CFG();
+    print_CFG();
+    printf("-------------------\n");
+    modify_CFG();
 }

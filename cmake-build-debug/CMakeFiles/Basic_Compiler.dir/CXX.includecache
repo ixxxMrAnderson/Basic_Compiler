@@ -7,6 +7,10 @@
 #IncludeRegexTransform: 
 
 D:/ClionProjects/Basic Compiler/AST.h
+Instruction Generator.h
+D:/ClionProjects/Basic Compiler/Instruction Generator.h
+
+D:/ClionProjects/Basic Compiler/Instruction Generator.h
 vector
 -
 map
@@ -28,6 +32,8 @@ D:/ClionProjects/Basic Compiler/Lexer.h
 
 D:/ClionProjects/Basic Compiler/main.cpp
 iostream
+-
+bitset
 -
 Parser.h
 D:/ClionProjects/Basic Compiler/Parser.h

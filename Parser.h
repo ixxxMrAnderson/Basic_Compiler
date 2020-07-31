@@ -19,14 +19,12 @@ unique_ptr<expr_AST> log_error(const char *str){
 
 unique_ptr<expr_AST> expr_parse();
 unique_ptr<expr_AST> number_parse(){
-    printf("Parsed a number atom: %d\n", number_token);
     auto result = make_unique<atom_AST>(number_token, "!");
     get_next_token();
     return make_unique<expr_AST>(move(result));
 }
 
 unique_ptr<expr_AST> identifier_parse(){
-    printf("Parsed a identifier atom: %s\n", identifier_token.c_str());
     auto result = make_unique<atom_AST>(0, identifier_token);
     get_next_token();
     return make_unique<expr_AST>(move(result));
@@ -38,7 +36,6 @@ unique_ptr<expr_AST> paren_parse(){
     if (!contents) return nullptr;
     //if (cur_token != ')') return log_error("expected ')'");
     get_next_token(); // Eat ')'.
-    printf("Parsed a paren expr\n");
     return contents;
 }
 
@@ -54,7 +51,7 @@ unique_ptr<expr_AST> primary_parse(){
         case '(':
             return paren_parse();
         default:
-            return_ = NULL;
+            return_ = nullptr;
     }
     while (cur_token == '[') return_->push(paren_parse());
     return return_;
@@ -85,24 +82,16 @@ int get_precedence(){
 unique_ptr<expr_AST> binop_RHS_parse(int expr_prec, unique_ptr<expr_AST> LHS){
     while (1){
         int cur_prec = get_precedence();
-        if (cur_prec < expr_prec) {
-            //printf("cur binop pre is lower(login: %d, cur: %d)\n", expr_prec, cur_prec);
-            return LHS;
-        }
+        if (cur_prec < expr_prec) return LHS;
         BINOP binop = binop_token;
         get_next_token(); // eat binop
         auto RHS = primary_parse();
-        if (!RHS) {
-            //printf("RHS is empty(login: %d, cur: %d)\n", expr_prec, cur_prec);
-            return nullptr;
-        }
+        if (!RHS) return nullptr;
         int next_prec = get_precedence();
         if (cur_prec < next_prec){
-            //printf("calculate RHS first(login: %d, cur: %d)\n", expr_prec, cur_prec);
             RHS = binop_RHS_parse(cur_prec + 1, move(RHS));
             if (!RHS) return nullptr;
         }
-        //printf("Merging LHS & RHS(login: %d, cur: %d)\n", expr_prec, cur_prec);
         LHS = make_unique<expr_AST>(binop, move(LHS), move(RHS));
     }
 }
@@ -114,17 +103,15 @@ unique_ptr<expr_AST> expr_parse(){
 }
 
 unique_ptr<let_AST> let_parse(){
-    printf("LET_parse\n");
     if (cur_token == LET_) get_next_token(); //Eat LET.
     auto lval = expr_parse();
-    unique_ptr<expr_AST> index = NULL;
+    unique_ptr<expr_AST> index = nullptr;
     get_next_token(); //Eat '='.
     auto rexpr = expr_parse();
     return make_unique<let_AST>(move(lval), move(rexpr), move(index));
 }
 
 unique_ptr<input_AST> input_parse(){
-    printf("INPUT_parse\n");
     get_next_token(); //Eat INPUT.
     unique_ptr<input_AST> tmp_input(new input_AST);
     tmp_input->push(move(expr_parse()));
@@ -136,42 +123,47 @@ unique_ptr<input_AST> input_parse(){
 }
 
 unique_ptr<goto_AST> goto_parse(){
-    printf("GOTO_parse\n");
     get_next_token(); //Eat GOTO.
-    return make_unique<goto_AST>(primary_parse()->value());
+    auto goto_ = primary_parse()->value();
+    if (!goto_){
+        printf("Failed. GOTO statement must follow a list of constant integers.\n");
+        exit(0);
+    } else {return make_unique<goto_AST>(goto_);}
 }
 
 unique_ptr<exit_AST> exit_parse(){
-    printf("EXIT_parse\n");
     get_next_token(); //Eat EXIT.
     return make_unique<exit_AST>(move(expr_parse()));
 }
 
-unique_ptr<stmt_AST> stmt_parse();
+unique_ptr<stmt_AST> stmt_parse(int line__);
 unique_ptr<if_AST> if_parse(){
-    printf("IF_parse");
     get_next_token(); //Eat IF.
     auto if_expr = expr_parse();
-    //printf("THEN\n", cur_token);
     get_next_token(); //Eat THEN.
     unique_ptr<expr_AST> if_goto(move(primary_parse()));
     return make_unique<if_AST>(move(if_expr), move(if_goto));
 }
 
-unique_ptr<for_AST> for_parse(){
-    printf("FOR_parse\n");
+unique_ptr<for_AST> for_parse(int for_line_){
     get_next_token(); //Eat FOR.
     unique_ptr<stmt_AST> it_stmt(new stmt_AST(let_parse()));
     get_next_token(); //Eat ';'.
+    int line;
     auto continue_gate = expr_parse();
-    auto tmp_for = make_unique<for_AST>(move(it_stmt), move(continue_gate));
+    auto tmp_for = make_unique<for_AST>(move(it_stmt), move(continue_gate), for_line_);
     while (cur_token != END_) {
-        //printf("pushing stmt: %d\n", cur_token);
-        int line = primary_parse()->value();
+        line = primary_parse()->value();
+        if (!line){
+            printf("Failed. Line number must be a constant integer.\n");
+            exit(0);
+        }
         if (cur_token == END_) break;
-        tmp_for->push(line, stmt_parse());
+        tmp_for->push(line, stmt_parse(line));
     }
+    tmp_for->end_for = line;
     get_next_token(); //Eat END.
+    tmp_for->after_end_for = number_token;
     return tmp_for;
 }
 
@@ -180,7 +172,7 @@ unique_ptr<stmt_AST> rem_parse(){
     return unique_ptr<stmt_AST>(new stmt_AST());
 }
 
-unique_ptr<stmt_AST> stmt_parse(){
+unique_ptr<stmt_AST> stmt_parse(int line__){
     switch (cur_token) {
         case INPUT_:
             return make_unique<stmt_AST>(input_parse());
@@ -191,7 +183,7 @@ unique_ptr<stmt_AST> stmt_parse(){
         case IF_:
             return make_unique<stmt_AST>(if_parse());
         case FOR_:
-            return make_unique<stmt_AST>(for_parse());
+            return make_unique<stmt_AST>(for_parse(line__));
         case REM_:
             return rem_parse();
         default:
@@ -201,19 +193,22 @@ unique_ptr<stmt_AST> stmt_parse(){
 
 program_AST main_parse(){
     program_AST prog;
-    int line_;
+    int line__;
+    get_next_token();
     while (1){
-        printf("ready>\n");
         auto line = primary_parse();
-        if (line == NULL) return prog;
-        else line_ = line->value();
+        if (!line) return prog;
+        else line__ = line->value();
+        if (!line){
+            printf("Failed. Line number must be a constant integer.\n");
+            exit(0);
+        }
         if (cur_token == EOF_) return prog;
         else {
-            auto st_ = stmt_parse();
-            if (!st_->isrem()) prog.push(line_, move(st_));
+            auto st_ = stmt_parse(line__);
+            if (!st_->isrem()) prog.push(line__, move(st_));
         }
         if (cur_token == ';') get_next_token();
-        printf("<loop over\n");
     }
 }
 
