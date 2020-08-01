@@ -17,7 +17,7 @@ enum OPCODE{
     SW, //S
     BEQ, BLT,
     LUI,
-    JALR, //J(U)
+    JAL, //J(U)
     ADD_, SUB_, TIMES_, DIVIDE_, SLT, OR_, AND_, //R
     UNKNOWN
 };
@@ -36,7 +36,7 @@ enum BINOP{
     ADD, SUB, TIMES,  DIVIDE, EQ, NOT_EQ, SMALLER, GREATER, SMALLER_EQ, GREATER_EQ, AND, OR
 };
 
-//map<string, int> val2reg;
+vector<int> for_lines;
 map<int, string> reg2val;
 map<string, int> val2mem;
 map<int, string> mem2val;
@@ -68,22 +68,23 @@ public:
 
 map<int, CFG_node> CFG;
 void print_CFG(){
+    printf("\nCFG_\n");
     for(auto i = CFG.begin(); i != CFG.end(); ++i) {
         if (i->second.jump >= 0 || i->second.jump == -2) {
             printf("%d > %d\n", i->first, i->second.jump);
         } else printf("%d_", i->first);
     }
-    printf("\n\n");
-    for(auto i = CFG.begin(); i != CFG.end(); ++i){
+//    printf("\n\n");
+//    for(auto i = CFG.begin(); i != CFG.end(); ++i){
 //        if (i->second.jump) printf("%d > %d\n", i->first, i->second.jump);
 //        else printf("%d_\n", i->first);
-        for (int j = 0; j < i->second.instructions.size(); ++j){
-            i->second.instructions[j].print_dump();
-            //i->second.instructions[j].print_data();
-            //printf("\n");
-        }
-        if (i->second.jump >= 0 || i->second.jump == -2) printf("\n\n");
-    }
+//        for (int j = 0; j < i->second.instructions.size(); ++j){
+//            i->second.instructions[j].print_dump();
+//            //i->second.instructions[j].print_data();
+//            //printf("\n");
+//        }
+//        if (i->second.jump >= 0 || i->second.jump == -2) printf("\n\n");
+//    }
 }
 
 //-------------------------------------------------------------------------------------
@@ -113,13 +114,11 @@ bool isdigit_(string x){
 }
 
 void LOAD_ins(CFG_node &node, int rs, int rd){
-//    printf("LOAD, %s(%d)\n", reg2val[rd].c_str(), rd);
     uint32_t code = ((rs & 0b11111) << 15) | ((rd & 0b11111) << 7) | (1 << 13) | 0b0000011;
     node.instructions.push_back(instruction(code, LW, rd, rs, 0, 0));
 }
 
 void STORE_ins(CFG_node &node, int rs1, int rs2){
-//    printf("STORE, %s(%d)\n", reg2val[rs1].c_str(), rs1);
     uint32_t code = ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15) | (1 << 13) | 0b0100011;
     node.instructions.push_back(instruction(code, SW, 0, rs1, rs2, 0));
 }
@@ -141,7 +140,7 @@ void ADDI_ins(CFG_node &node, int imm, string rd = "", int rs1 = 0){
     node.instructions.push_back(instruction(code, ADDI, rd_, rs1, 0, imm));
 }
 
-void BINOP_ins(CFG_node &node, BINOP binop, string LHS, string RHS){
+void binop_ins(CFG_node &node, BINOP binop, string LHS, string RHS){
     uint32_t code = 0;
     if (isdigit_(LHS)) ADDI_ins(node, strtod(LHS.c_str(), 0));
     else {
@@ -237,7 +236,7 @@ void BINOP_ins(CFG_node &node, BINOP binop, string LHS, string RHS){
     STORE_ins(node, node.latest_rd(), rd);
 }
 
-void MOVE_ins(CFG_node &node, string to, string from){
+void move_ins(CFG_node &node, string to, string from){
     if (isdigit_(from)) ADDI_ins(node, strtod(from.c_str(), 0));
     else{
         ADDI_ins(node, new_mem_space(from));
@@ -248,18 +247,17 @@ void MOVE_ins(CFG_node &node, string to, string from){
     STORE_ins(node, node.latest_rd(), addr);
 }
 
-void INPUT_ins(CFG_node &node, string to){
+void input_ins(CFG_node &node, string to){
     int tmp = 0;
     printf("INPUT_%s: ", to.c_str());
     scanf("%d", &tmp);
-    printf("\n");
     ADDI_ins(node, tmp, to);
     int rs = node.latest_rd();
     ADDI_ins(node, new_mem_space(to));
     STORE_ins(node, node.latest_rd(), rs);
 }
 
-void EXIT_ins(CFG_node &node, string to){
+void return_ins(CFG_node &node, string to){
     if (isdigit_(to)) ADDI_ins(node, strtod(to.c_str(), 0), "!");
     else {
         ADDI_ins(node, new_mem_space(to));
@@ -268,13 +266,12 @@ void EXIT_ins(CFG_node &node, string to){
     node.instructions.push_back(instruction(0xff00513));
 }
 
-void GOTO_ins(CFG_node &node, int to){
-    int rd = new_reg(".");
-    uint32_t code = (to << 20)| ((rd & 0b11111) << 7) | 0b1100111;
-    node.instructions.push_back(instruction(code, JALR, rd, 0, 0, to));
+void jump_ins(CFG_node &node, int jump){
+    uint32_t code = ((jump & 0x7fe) << 20) | (((jump >> 20) & 1) << 31) | (((jump >> 11) & 1) << 20) | (((jump >> 12) & 0xff) << 12) | 0b1101111;
+    node.instructions.push_back(instruction(code, JAL, 0, 0, 0, jump));
 }
 
-void BEQ_ins(CFG_node &node, string gate, int go_to, bool flag){
+void branch_ins(CFG_node &node, string gate, int jump, bool flag){
     ADDI_ins(node, new_mem_space(gate));
     LOAD_ins(node, node.latest_rd(), new_reg());
     int rs2 = node.latest_rd();
@@ -282,56 +279,32 @@ void BEQ_ins(CFG_node &node, string gate, int go_to, bool flag){
     ADDI_ins(node, 0);
     int rs1 = node.latest_rd();
     if (flag){
-        code = ((go_to >> 5) << 25) | ((go_to & 0b11110) << 7) | (go_to & (1 << 11)) >> 4 | (1 << 14) | 0b1100011;
-        code |= ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15);
-        node.instructions.push_back(instruction(code, BLT, 0, rs1, rs2, go_to));
+        code = (1 << 10) | 0b1100011| ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15);
+        node.instructions.push_back(instruction(code, BEQ, 0, rs1, rs2, 8));
     } else {
-        code = ((go_to >> 5) << 25) | ((go_to & 0b11110) << 7) | (go_to & (1 << 11)) >> 4 | 0b1100011;
-        code |= ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15);
-        node.instructions.push_back(instruction(code, BEQ, 0, rs1, rs2, go_to));
+        code = (1 << 10) | (1 << 14) | 0b1100011| ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15);
+        node.instructions.push_back(instruction(code, BLT, 0, rs1, rs2, 8));
     }
+    jump_ins(node, jump);
 }
 
-map<int, CFG_node> CFG_final;
 int passed_ = 0;
 void modify_CFG(){
     bool new_block = 1;
     int addr = 0, jump, cnt_print = 0;
     for(auto i = CFG.begin(); i != CFG.end(); ++i) {
-        //printf("key: %d\n", i->first);
         addr = passed_;
-        //printf("addr: %d\n", addr);
         passed_ += i->second.instructions.size() * 4;
-        if (i->second.jump >= 0){
+        if (i->second.jump >= 0) {
             jump = 0;
-            for(auto k = CFG.begin(); k != CFG.end(); ++k) {
+            for (auto k = CFG.begin(); k != CFG.end(); ++k) {
                 if (k->first == i->second.jump) break;
                 jump += k->second.instructions.size() * 4;
             }
-            int index = i->second.instructions.size() - 1;
-            int rs1 = i->second.instructions[index].rs1, rs2 = i->second.instructions[index].rs2, rd = i->second.instructions[index].rd;
-            uint32_t code;
-            switch(i->second.instructions[index].opcode){
-                case BLT:
-                    jump -= (passed_ - 4);
-                    code = ((jump >> 5) << 25) | ((jump & 0b11110) << 7) | (jump & (1 << 11)) >> 4 | (1 << 14) | 0b1100011;
-                    code |= ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15);
-                    i->second.instructions[index] = instruction(code, BLT, rd, rs1, rs2, jump);
-                    break;
-                case BEQ:
-                    jump -= (passed_ - 4);
-                    code = ((jump >> 5) << 25) | ((jump  & 0b11110) << 7) | (jump  & (1 << 11)) >> 4 | 0b1100011;
-                    code |= ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15);
-                    i->second.instructions[index] = instruction(code, BEQ, rd, rs1, rs2, jump);
-                    break;
-                case JALR:
-                    code = (jump  << 20) | ((rd & 0b11111) << 7) | 0b1100111;
-                    i->second.instructions[index] = instruction(code, JALR, rd, rs1, rs2, jump);
-            }
-        } else jump = i->second.jump;
-        i->second.jump = jump;
-        //printf("jump: %d\n", jump);
-        CFG_final[addr] = i->second;
+            jump -= (passed_ - 4);
+            i->second.instructions.pop_back();
+            jump_ins(i->second, jump);
+        }
         if (new_block) {
             printf("@%08X\n", addr);
             new_block = 0;
@@ -346,7 +319,6 @@ void modify_CFG(){
             printf("\n\n");
         }
     }
-    //printf("\ntotal: %08X\n", passed_);
 }
 
 

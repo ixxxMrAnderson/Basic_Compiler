@@ -79,7 +79,7 @@ public:
         if (atom_expr) return;
         LHS->generate_CFG(node);
         RHS->generate_CFG(node);
-        BINOP_ins(node, binop, LHS->generate_str(), RHS->generate_str());
+        binop_ins(node, binop, LHS->generate_str(), RHS->generate_str());
     }
 };
 
@@ -93,7 +93,7 @@ public:
     void generate_CFG(CFG_node &node){
         lvalue->generate_CFG(node);
         rvalue->generate_CFG(node);
-        MOVE_ins(node, lvalue->generate_str(), rvalue->generate_str());
+        move_ins(node, lvalue->generate_str(), rvalue->generate_str());
     }
 };
 
@@ -104,7 +104,7 @@ public:
     void push(unique_ptr<expr_AST> identifier){identifiers.push_back(move(identifier));}
     void generate_CFG(CFG_node &node){
         for (int i = 0; i < identifiers.size(); ++i){
-            INPUT_ins(node, identifiers[i]->generate_str());
+            input_ins(node, identifiers[i]->generate_str());
         }
     }
 };
@@ -117,7 +117,7 @@ public:
             : exit_expr(move(exit_expr_)){}
     void generate_CFG(CFG_node &node){
         exit_expr->generate_CFG(node);
-        EXIT_ins(node, exit_expr->generate_str());
+        return_ins(node, exit_expr->generate_str());
     }
 };
 
@@ -125,7 +125,7 @@ class goto_AST{
 public:
     int go_to;
     goto_AST(int go_to_ = 0): go_to(go_to_){}
-    void generate_CFG(CFG_node &node){GOTO_ins(node, go_to);}
+    void generate_CFG(CFG_node &node){jump_ins(node, go_to);}
 };
 
 class if_AST;
@@ -163,7 +163,7 @@ public:
     void generate_CFG(CFG_node &node){
         if_expr->generate_CFG(node);
         if_goto->generate_CFG(node);
-        BEQ_ins(node, if_expr->generate_str(), if_goto->value(), 1);
+        branch_ins(node, if_expr->generate_str(), if_goto->value(), 1);
     }
 };
 
@@ -180,17 +180,33 @@ public:
     void push(int line, unique_ptr<stmt_AST> stmt){stmts[line] = move(stmt);}
     void generate_CFG(){
         CFG_node node(after_end_for);
+        branch_ins(node, "FOR_" + to_string(for_line), 0, 1);
+        int size_1 = node.instructions.size();
         it_stmt->let_stmt->generate_CFG(node);
+        int size_2 = node.instructions.size();
+        int jump = (size_2 - size_1) * 4 + 4;
+        uint32_t code = ((jump & 0x7fe) << 20) | (((jump >> 20) & 1) << 31) | (((jump >> 11) & 1) << 20) |
+                        (((jump >> 12) & 0xff) << 12) | 0b1101111;
+        node.instructions[size_1 - 1] = instruction(code, JAL, 0, 0, 0, jump);
         continue_gate->generate_CFG(node);
-        BEQ_ins(node, continue_gate->generate_str(), after_end_for, 0);
-//        printf("(jump_%d)\n", after_end_for);
+        ADDI_ins(node, val2mem["FOR_" + to_string(for_line)]);
+        int addr = node.latest_rd();
+        ADDI_ins(node, 0);
+        STORE_ins(node, addr, node.latest_rd());
+        branch_ins(node, continue_gate->generate_str(), after_end_for, 0);
+        instruction tmp_jal = node.instructions[node.instructions.size() - 1];
+        node.instructions.pop_back();
+        node.instructions[node.instructions.size() - 1].code |= (20 << 7);
+        ADDI_ins(node, val2mem["FOR_" + to_string(for_line)]);
+        addr = node.latest_rd();
+        ADDI_ins(node, 1);
+        STORE_ins(node, addr, node.latest_rd());
+        node.instructions.push_back(tmp_jal);
         CFG[for_line] = node;
-        generate_CFG_(move(stmts), end_for);
+        generate_CFG_(move(stmts), -1);
         CFG_node node_(for_line);
-        GOTO_ins(node_, for_line);
+        jump_ins(node_, for_line);
         CFG[end_for] = node_;
-//        printf("(addr_%d)\nENDFOR\n", end_for);
-//        printf("(jump_%d)\n", for_line);
     }
 };
 
@@ -206,13 +222,22 @@ public:
     void generate_CFG(){generate_CFG_(move(stmts), -2);}
 };
 
+bool for_store = 1;
 void generate_CFG_(map<int, unique_ptr<stmt_AST>> stmts, int jump_){
     int addr, jump = 0;
     auto i = stmts.begin();
     while(i != stmts.end()){
         CFG_node node;
+        if (for_store){
+            for (int j = 0; j < for_lines.size(); ++j){
+                ADDI_ins(node, new_mem_space("FOR_" + to_string(for_lines[j])));
+                int addr = node.latest_rd();
+                ADDI_ins(node, 1);
+                STORE_ins(node, addr, node.latest_rd());
+            }
+            for_store = 0;
+        }
         addr = i->first;
-//        printf("(addr_%d)\n", addr);
         if (i->second->let_stmt) {
             (i++)->second->let_stmt->generate_CFG(node);
             jump = -1;
@@ -238,7 +263,6 @@ void generate_CFG_(map<int, unique_ptr<stmt_AST>> stmts, int jump_){
             jump = -2;
         }
         if (i == stmts.end() && jump < 0) jump = jump_;
-//        printf("(jump_%d)\n", jump);
         node.jump = jump;
         CFG[addr] = node;
     }

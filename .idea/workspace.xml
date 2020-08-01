@@ -14,12 +14,14 @@
     <list default="true" id="096f8c77-de77-476d-9ea8-dadcb9ebebe7" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AST.h" beforeDir="false" afterPath="$PROJECT_DIR$/AST.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/AST_delete movee.h" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Instruction Generator.h" beforeDir="false" afterPath="$PROJECT_DIR$/Instruction Generator.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Parser.h" beforeDir="false" afterPath="$PROJECT_DIR$/Parser.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/Basic_Compiler.exe" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/Basic_Compiler.exe" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/main.cpp.obj" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/main.cpp.obj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/objects.a" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/objects.a" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/testcases/op_test/op_2.txt" beforeDir="false" afterPath="$PROJECT_DIR$/testcases/op_test/op_2.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testcases/control_test/control_1.txt" beforeDir="false" afterPath="$PROJECT_DIR$/testcases/control_test/control_1.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,7 +46,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../PPCA_test" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../RISCV" />
   </component>
   <component name="RunManager">
     <configuration name="Basic_Compiler" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Basic_Compiler" TARGET_NAME="Basic_Compiler" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="Basic_Compiler" RUN_TARGET_NAME="Basic_Compiler">
@@ -78,7 +80,8 @@
       <workItem from="1595984172699" duration="28625000" />
       <workItem from="1596070328020" duration="8249000" />
       <workItem from="1596116464543" duration="3545000" />
-      <workItem from="1596120854247" duration="31151000" />
+      <workItem from="1596120854247" duration="31743000" />
+      <workItem from="1596240291120" duration="30616000" />
     </task>
     <servers />
   </component>
@@ -86,26 +89,26 @@
     <option name="version" value="1" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="413" y="62" key="FileChooserDialogImpl" timestamp="1596084784848">
+    <state x="413" y="62" key="FileChooserDialogImpl" timestamp="1596286636755">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="413" y="62" key="FileChooserDialogImpl/0.0.1366.728@0.0.1366.728" timestamp="1596084784848" />
-    <state width="1313" height="333" key="GridCell.Tab.0.bottom" timestamp="1596204928977">
+    <state x="413" y="62" key="FileChooserDialogImpl/0.0.1366.728@0.0.1366.728" timestamp="1596286636755" />
+    <state width="1313" height="429" key="GridCell.Tab.0.bottom" timestamp="1596286611002">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1313" height="333" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1596204928977" />
-    <state width="1313" height="333" key="GridCell.Tab.0.center" timestamp="1596204928977">
+    <state width="1313" height="429" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1596286611002" />
+    <state width="1313" height="429" key="GridCell.Tab.0.center" timestamp="1596286611002">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1313" height="333" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1596204928977" />
-    <state width="1313" height="333" key="GridCell.Tab.0.left" timestamp="1596204928977">
+    <state width="1313" height="429" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1596286611002" />
+    <state width="1313" height="429" key="GridCell.Tab.0.left" timestamp="1596286611001">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1313" height="333" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1596204928977" />
-    <state width="1313" height="333" key="GridCell.Tab.0.right" timestamp="1596204928977">
+    <state width="1313" height="429" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1596286611001" />
+    <state width="1313" height="429" key="GridCell.Tab.0.right" timestamp="1596286611002">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1313" height="333" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1596204928977" />
+    <state width="1313" height="429" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1596286611002" />
     <state x="300" y="147" key="com.intellij.ide.util.TipDialog" timestamp="1596120912964">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
@@ -114,9 +117,9 @@
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state x="255" y="159" key="run.anything.popup/0.0.1366.728@0.0.1366.728" timestamp="1595833723730" />
-    <state x="262" y="-1" width="840" height="1034" key="search.everywhere.popup" timestamp="1595838415341">
+    <state x="262" y="-1" width="840" height="1034" key="search.everywhere.popup" timestamp="1596271417321">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="262" y="-1" width="840" height="1034" key="search.everywhere.popup/0.0.1366.728@0.0.1366.728" timestamp="1595838415341" />
+    <state x="262" y="-1" width="840" height="1034" key="search.everywhere.popup/0.0.1366.728@0.0.1366.728" timestamp="1596271417321" />
   </component>
 </project>

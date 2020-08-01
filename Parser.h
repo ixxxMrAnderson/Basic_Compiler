@@ -146,6 +146,7 @@ unique_ptr<if_AST> if_parse(){
 }
 
 unique_ptr<for_AST> for_parse(int for_line_){
+    for_lines.push_back(for_line_);
     get_next_token(); //Eat FOR.
     unique_ptr<stmt_AST> it_stmt(new stmt_AST(let_parse()));
     get_next_token(); //Eat ';'.
