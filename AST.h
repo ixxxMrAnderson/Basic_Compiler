@@ -7,21 +7,11 @@
 
 #include "Instruction Generator.h"
 
-enum TOKEN_TYPE{
-    EOF_ = -1, number_ = -2, identifier_ = -3, binop_ = -4,
-    LET_ = -5, INPUT_ = -6, EXIT_ = -7, GOTO_ = -8, IF_ = -9, THEN_ = -10, FOR_ = -11, END_ = -12, REM_ = -13,
-    line_ = -14
-};
-
-const char binop_str[12][3]{
-    "+", "-", "*", "/", "==", "!=", "<", ">", "<=", ">=", "&&","||"
-};
-
 class atom_AST{
-public:
     enum ATOM_TYPE{
         NUMBER, IDENTIFIER
     } atom_type;
+public:
     int atom_value;
     string atom_name;
     atom_AST(int value_ = 0, string name_ = ""): atom_value(value_), atom_name(name_){
@@ -93,7 +83,7 @@ public:
     void generate_CFG(CFG_node &node){
         lvalue->generate_CFG(node);
         rvalue->generate_CFG(node);
-        move_ins(node, lvalue->generate_str(), rvalue->generate_str());
+        assign_ins(node, lvalue->generate_str(), rvalue->generate_str());
     }
 };
 
@@ -150,12 +140,11 @@ public:
     stmt_AST(unique_ptr<if_AST> stmt_);
     stmt_AST(unique_ptr<for_AST> stmt_);
     bool isrem(){return isrem_;}
-    void generate();
 };
 
 class if_AST{
-public:
     unique_ptr<expr_AST> if_expr;
+public:
     unique_ptr<expr_AST> if_goto;
     if_AST(){}
     if_AST(unique_ptr<expr_AST> if_expr_, unique_ptr<expr_AST> if_goto_)
@@ -169,10 +158,10 @@ public:
 
 void generate_CFG_(map<int, unique_ptr<stmt_AST>> stmts, int jump_);
 class for_AST{
-public:
     map<int, unique_ptr<stmt_AST>> stmts;
     unique_ptr<stmt_AST> it_stmt;
     unique_ptr<expr_AST> continue_gate;
+public:
     int for_line, after_end_for, end_for;
     for_AST(){}
     for_AST(unique_ptr<stmt_AST> it_stmt_, unique_ptr<expr_AST> continue_gate_, int for_line_)
@@ -189,18 +178,14 @@ public:
                         (((jump >> 12) & 0xff) << 12) | 0b1101111;
         node.instructions[size_1 - 1] = instruction(code, JAL, 0, 0, 0, jump);
         continue_gate->generate_CFG(node);
-        ADDI_ins(node, val2mem["FOR_" + to_string(for_line)]);
-        int addr = node.latest_rd();
-        ADDI_ins(node, 0);
-        STORE_ins(node, addr, node.latest_rd());
+        ADDI_ins(node, 0, "FOR_" + to_string(for_line));
         branch_ins(node, continue_gate->generate_str(), after_end_for, 0);
         instruction tmp_jal = node.instructions[node.instructions.size() - 1];
         node.instructions.pop_back();
-        node.instructions[node.instructions.size() - 1].code |= (20 << 7);
-        ADDI_ins(node, val2mem["FOR_" + to_string(for_line)]);
-        addr = node.latest_rd();
-        ADDI_ins(node, 1);
-        STORE_ins(node, addr, node.latest_rd());
+        int index_1 = node.instructions.size() - 1;
+        ADDI_ins(node, 1, "FOR_" + to_string(for_line));
+        node.instructions[index_1].code |= (1 << 9);
+        node.instructions[index_1].imm = 12;
         node.instructions.push_back(tmp_jal);
         CFG[for_line] = node;
         generate_CFG_(move(stmts), -1);
@@ -229,11 +214,8 @@ void generate_CFG_(map<int, unique_ptr<stmt_AST>> stmts, int jump_){
     while(i != stmts.end()){
         CFG_node node;
         if (for_store){
-            for (int j = 0; j < for_lines.size(); ++j){
-                ADDI_ins(node, new_mem_space("FOR_" + to_string(for_lines[j])));
-                int addr = node.latest_rd();
-                ADDI_ins(node, 1);
-                STORE_ins(node, addr, node.latest_rd());
+            for (auto j = for_lines.begin(); j != for_lines.end(); ++j){
+                ADDI_ins(node, 1, j->first);
             }
             for_store = 0;
         }

@@ -14,14 +14,13 @@
     <list default="true" id="096f8c77-de77-476d-9ea8-dadcb9ebebe7" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AST.h" beforeDir="false" afterPath="$PROJECT_DIR$/AST.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/AST_delete movee.h" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/Instruction Generator.h" beforeDir="false" afterPath="$PROJECT_DIR$/Instruction Generator.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Parser.h" beforeDir="false" afterPath="$PROJECT_DIR$/Parser.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/Basic_Compiler.exe" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/Basic_Compiler.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/CXX.includecache" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/CXX.includecache" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/main.cpp.obj" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/main.cpp.obj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/objects.a" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/objects.a" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/testcases/control_test/control_1.txt" beforeDir="false" afterPath="$PROJECT_DIR$/testcases/control_test/control_1.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,6 +33,7 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="UPDATE_TYPE" value="MERGE" />
   </component>
   <component name="ProjectId" id="1eekuULyb8ExIpGDvlqxYz21dEO" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -81,7 +81,9 @@
       <workItem from="1596070328020" duration="8249000" />
       <workItem from="1596116464543" duration="3545000" />
       <workItem from="1596120854247" duration="31743000" />
-      <workItem from="1596240291120" duration="30616000" />
+      <workItem from="1596240291120" duration="31933000" />
+      <workItem from="1596375240744" duration="2703000" />
+      <workItem from="1596416292162" duration="30277000" />
     </task>
     <servers />
   </component>
@@ -89,30 +91,34 @@
     <option name="version" value="1" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="413" y="62" key="FileChooserDialogImpl" timestamp="1596286636755">
+    <state x="413" y="62" key="FileChooserDialogImpl" timestamp="1596505076259">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="413" y="62" key="FileChooserDialogImpl/0.0.1366.728@0.0.1366.728" timestamp="1596286636755" />
-    <state width="1313" height="429" key="GridCell.Tab.0.bottom" timestamp="1596286611002">
+    <state x="413" y="62" key="FileChooserDialogImpl/0.0.1366.728@0.0.1366.728" timestamp="1596505076259" />
+    <state width="1296" height="279" key="GridCell.Tab.0.bottom" timestamp="1596533858356">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1313" height="429" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1596286611002" />
-    <state width="1313" height="429" key="GridCell.Tab.0.center" timestamp="1596286611002">
+    <state width="1296" height="279" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1596533858356" />
+    <state width="1296" height="279" key="GridCell.Tab.0.center" timestamp="1596533858355">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1313" height="429" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1596286611002" />
-    <state width="1313" height="429" key="GridCell.Tab.0.left" timestamp="1596286611001">
+    <state width="1296" height="279" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1596533858355" />
+    <state width="1296" height="279" key="GridCell.Tab.0.left" timestamp="1596533858355">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1313" height="429" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1596286611001" />
-    <state width="1313" height="429" key="GridCell.Tab.0.right" timestamp="1596286611002">
+    <state width="1296" height="279" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1596533858355" />
+    <state width="1296" height="279" key="GridCell.Tab.0.right" timestamp="1596533858355">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1313" height="429" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1596286611002" />
-    <state x="300" y="147" key="com.intellij.ide.util.TipDialog" timestamp="1596120912964">
+    <state width="1296" height="279" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1596533858355" />
+    <state x="300" y="147" key="com.intellij.ide.util.TipDialog" timestamp="1596416320719">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="300" y="147" key="com.intellij.ide.util.TipDialog/0.0.1366.728@0.0.1366.728" timestamp="1596120912964" />
+    <state x="300" y="147" key="com.intellij.ide.util.TipDialog/0.0.1366.728@0.0.1366.728" timestamp="1596416320719" />
+    <state x="442" y="262" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1596527685660">
+      <screen x="0" y="0" width="1366" height="728" />
+    </state>
+    <state x="442" y="262" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.1366.728@0.0.1366.728" timestamp="1596527685660" />
     <state x="255" y="159" key="run.anything.popup" timestamp="1595833723730">
       <screen x="0" y="0" width="1366" height="728" />
     </state>

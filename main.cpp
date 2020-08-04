@@ -1,4 +1,3 @@
-#include <iostream>
 #include <bitset>
 #include "Parser.h"
 
@@ -10,5 +9,5 @@ int main() {
     prog.generate_CFG();
     print_CFG();
     printf("-------------------\n");
-    modify_CFG();
+    generate_code();
 }

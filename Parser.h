@@ -12,11 +12,6 @@ int get_next_token(){
     return cur_token = get_token();
 }
 
-unique_ptr<expr_AST> log_error(const char *str){
-    printf("log_error: %s\n", str);
-    return nullptr;
-}
-
 unique_ptr<expr_AST> expr_parse();
 unique_ptr<expr_AST> number_parse(){
     auto result = make_unique<atom_AST>(number_token, "!");
@@ -31,11 +26,13 @@ unique_ptr<expr_AST> identifier_parse(){
 }
 
 unique_ptr<expr_AST> paren_parse(){
-    get_next_token(); // Eat '('.
+    int tmp_token = cur_token;
+    get_next_token();
     auto contents = expr_parse();
     if (!contents) return nullptr;
-    //if (cur_token != ')') return log_error("expected ')'");
-    get_next_token(); // Eat ')'.
+    if (tmp_token == '(' && cur_token != ')') log_error("expected ')'");
+    if (tmp_token == '[' && cur_token != ']') log_error("expected ']'");
+    get_next_token();
     return contents;
 }
 
@@ -106,6 +103,7 @@ unique_ptr<let_AST> let_parse(){
     if (cur_token == LET_) get_next_token(); //Eat LET.
     auto lval = expr_parse();
     unique_ptr<expr_AST> index = nullptr;
+    if (cur_token != '=') log_error("LET statement should be followed by an assignment");
     get_next_token(); //Eat '='.
     auto rexpr = expr_parse();
     return make_unique<let_AST>(move(lval), move(rexpr), move(index));
@@ -125,10 +123,8 @@ unique_ptr<input_AST> input_parse(){
 unique_ptr<goto_AST> goto_parse(){
     get_next_token(); //Eat GOTO.
     auto goto_ = primary_parse()->value();
-    if (!goto_){
-        printf("Failed. GOTO statement must follow a list of constant integers.\n");
-        exit(0);
-    } else {return make_unique<goto_AST>(goto_);}
+    if (!goto_) log_error("GOTO statement must be followed by a list of constant integers");
+    return make_unique<goto_AST>(goto_);
 }
 
 unique_ptr<exit_AST> exit_parse(){
@@ -145,8 +141,9 @@ unique_ptr<if_AST> if_parse(){
     return make_unique<if_AST>(move(if_expr), move(if_goto));
 }
 
+int cnt_for_line = 1;
 unique_ptr<for_AST> for_parse(int for_line_){
-    for_lines.push_back(for_line_);
+    for_lines["FOR_" + to_string(for_line_)] = cnt_for_line++;
     get_next_token(); //Eat FOR.
     unique_ptr<stmt_AST> it_stmt(new stmt_AST(let_parse()));
     get_next_token(); //Eat ';'.
@@ -155,10 +152,7 @@ unique_ptr<for_AST> for_parse(int for_line_){
     auto tmp_for = make_unique<for_AST>(move(it_stmt), move(continue_gate), for_line_);
     while (cur_token != END_) {
         line = primary_parse()->value();
-        if (!line){
-            printf("Failed. Line number must be a constant integer.\n");
-            exit(0);
-        }
+        if (!line) log_error("Line number must be a constant integer");
         if (cur_token == END_) break;
         tmp_for->push(line, stmt_parse(line));
     }
@@ -200,10 +194,7 @@ program_AST main_parse(){
         auto line = primary_parse();
         if (!line) return prog;
         else line__ = line->value();
-        if (!line){
-            printf("Failed. Line number must be a constant integer.\n");
-            exit(0);
-        }
+        if (!line) log_error("Line number must be a constant integer");
         if (cur_token == EOF_) return prog;
         else {
             auto st_ = stmt_parse(line__);
