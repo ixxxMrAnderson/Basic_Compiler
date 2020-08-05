@@ -8,10 +8,10 @@
 #include "Instruction Generator.h"
 
 class atom_AST{
+public:
     enum ATOM_TYPE{
         NUMBER, IDENTIFIER
-    } atom_type;
-public:
+    } atom_type;;
     int atom_value;
     string atom_name;
     atom_AST(int value_ = 0, string name_ = ""): atom_value(value_), atom_name(name_){
@@ -27,11 +27,11 @@ public:
 
 class expr_AST{
     BINOP binop;
-    unique_ptr<atom_AST> atom_expr;
     unique_ptr<expr_AST> LHS, RHS;
     vector<unique_ptr<expr_AST>> indexes;
     string expr_str = "";
 public:
+    unique_ptr<atom_AST> atom_expr;
     expr_AST(){}
     string generate_str(){
         if (expr_str != "") return expr_str;
@@ -60,16 +60,45 @@ public:
         if (!atom_expr) return 0;
         else return atom_expr->atom_value;
     }
-    string name(){
-        if (!atom_expr) return "";
-        else return atom_expr->atom_name;
-    }
     void push(unique_ptr<expr_AST> index_){indexes.push_back(move(index_));}
     void generate_CFG(CFG_node &node){
+        int index_1 = 0, index_2 = 0;
+        uint32_t code;
         if (atom_expr) return;
         LHS->generate_CFG(node);
+        if (binop == AND || binop == OR){
+            int rs2 = 0;
+            if (LHS->atom_expr){
+                if (LHS->atom_expr->atom_type == atom_AST::NUMBER) ADDI_ins(node, LHS->value());
+                else {
+                    int addr = val2mem[LHS->generate_str()];
+                    ADDI_ins(node, (addr >> 12) << 12);
+                    LOAD_ins(node, node.latest_rd(), new_reg(), addr - ((addr >> 12) << 12));
+                }
+                rs2 = node.latest_rd();
+            } else rs2 = node.instructions[node.instructions.size() - 3].rd;
+            ADDI_ins(node, 0);
+            int rs1 = node.latest_rd();
+            if (binop == OR){
+                code = (1 << 10) | 0b1100011| ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15);
+                node.instructions.push_back(instruction(code, BEQ, 0, rs1, rs2, 8));
+            } else {
+                code = (1 << 10) | (1 << 14) | 0b1100011| ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15);
+                node.instructions.push_back(instruction(code, BLT, 0, rs1, rs2, 8));
+            }
+            jump_ins(node, 0);
+            index_1 = node.instructions.size() - 1;
+        }
         RHS->generate_CFG(node);
-        binop_ins(node, binop, LHS->generate_str(), RHS->generate_str());
+        if (RHS->atom_expr){
+            if (RHS->atom_expr->atom_type == atom_AST::NUMBER) ADDI_ins(node, RHS->value());
+            else {
+                int addr = val2mem[RHS->generate_str()];
+                ADDI_ins(node, (addr >> 12) << 12);
+                LOAD_ins(node, node.latest_rd(), new_reg(), addr - ((addr >> 12) << 12));
+            }
+        } else node.instructions.pop_back(), node.instructions.pop_back();
+        binop_ins(node, binop, LHS->generate_str(), RHS->generate_str(), node.latest_rd(), index_1);
     }
 };
 
@@ -81,9 +110,18 @@ public:
     let_AST(unique_ptr<expr_AST> lvalue_, unique_ptr<expr_AST> rvalue_, unique_ptr<expr_AST> index_)
             : lvalue(move(lvalue_)), rvalue(move(rvalue_)){}
     void generate_CFG(CFG_node &node){
-        lvalue->generate_CFG(node);
         rvalue->generate_CFG(node);
-        assign_ins(node, lvalue->generate_str(), rvalue->generate_str());
+        if (rvalue->atom_expr){
+            if (rvalue->atom_expr->atom_type == atom_AST::NUMBER) ADDI_ins(node, rvalue->value());
+            else{
+                int addr = val2mem[rvalue->generate_str()];
+                ADDI_ins(node, (addr >> 12) << 12);
+                LOAD_ins(node, node.latest_rd(), new_reg(), addr - ((addr >> 12) << 12));
+            }
+        } else node.instructions.pop_back(), node.instructions.pop_back();
+        int rs = node.latest_rd(), addr = new_mem_space(lvalue->generate_str());
+        ADDI_ins(node, (addr >> 12) << 12);
+        STORE_ins(node, node.latest_rd(), rs, addr - ((addr >> 12) << 12));
     }
 };
 
@@ -94,7 +132,13 @@ public:
     void push(unique_ptr<expr_AST> identifier){identifiers.push_back(move(identifier));}
     void generate_CFG(CFG_node &node){
         for (int i = 0; i < identifiers.size(); ++i){
-            input_ins(node, identifiers[i]->generate_str());
+            int tmp = 0;
+            printf("input %s:\n", identifiers[i]->generate_str().c_str());
+            scanf("%d", &tmp);
+            ADDI_ins(node, tmp, identifiers[i]->generate_str());
+            int rs = node.latest_rd(), addr = new_mem_space(identifiers[i]->generate_str());
+            ADDI_ins(node, (addr >> 12) << 12);
+            STORE_ins(node, node.latest_rd(), rs, addr - ((addr >> 12) << 12));
         }
     }
 };
@@ -107,7 +151,20 @@ public:
             : exit_expr(move(exit_expr_)){}
     void generate_CFG(CFG_node &node){
         exit_expr->generate_CFG(node);
-        return_ins(node, exit_expr->generate_str());
+        if (exit_expr->atom_expr){
+            if (exit_expr->atom_expr->atom_type == atom_AST::NUMBER) ADDI_ins(node, exit_expr->value(), "!");
+            else {
+                int addr = val2mem[exit_expr->generate_str()];
+                ADDI_ins(node, (addr >> 12) << 12);
+                LOAD_ins(node, node.latest_rd(), new_reg("!"), addr - ((addr >> 12) << 12));
+            }
+        } else {
+            node.instructions.pop_back(), node.instructions.pop_back();
+            node.instructions[node.instructions.size() - 1].code &= ~(0b11111 << 7);
+            node.instructions[node.instructions.size() - 1].code |= (10 << 7);
+            node.instructions[node.instructions.size() - 1].rd = 10;
+        }
+        node.instructions.push_back(instruction(0xff00513));
     }
 };
 
@@ -151,8 +208,13 @@ public:
             :if_goto(move(if_goto_)), if_expr(move(if_expr_)){}
     void generate_CFG(CFG_node &node){
         if_expr->generate_CFG(node);
-        if_goto->generate_CFG(node);
-        branch_ins(node, if_expr->generate_str(), if_goto->value(), 1);
+        node.instructions.pop_back(), node.instructions.pop_back();
+        int rs2 = node.latest_rd();
+        ADDI_ins(node, 0);
+        int rs1 = node.latest_rd();
+        uint32_t code = (1 << 10) | 0b1100011| ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15);
+        node.instructions.push_back(instruction(code, BEQ, 0, rs1, rs2, 8));
+        jump_ins(node, if_goto->value());
     }
 };
 
@@ -169,24 +231,29 @@ public:
     void push(int line, unique_ptr<stmt_AST> stmt){stmts[line] = move(stmt);}
     void generate_CFG(){
         CFG_node node(after_end_for);
-        branch_ins(node, "FOR_" + to_string(for_line), 0, 1);
+        int rs2 = for_lines["FOR_" + to_string(for_line)];
+        ADDI_ins(node, 0);
+        int rs1 = node.latest_rd();
+        uint32_t code = (1 << 10) | 0b1100011| ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15);
+        node.instructions.push_back(instruction(code, BEQ, 0, rs1, rs2, 8));
+        jump_ins(node, 0);
         int size_1 = node.instructions.size();
         it_stmt->let_stmt->generate_CFG(node);
         int size_2 = node.instructions.size();
         int jump = (size_2 - size_1) * 4 + 4;
-        uint32_t code = ((jump & 0x7fe) << 20) | (((jump >> 20) & 1) << 31) | (((jump >> 11) & 1) << 20) |
+        code = ((jump & 0x7fe) << 20) | (((jump >> 20) & 1) << 31) | (((jump >> 11) & 1) << 20) |
                         (((jump >> 12) & 0xff) << 12) | 0b1101111;
         node.instructions[size_1 - 1] = instruction(code, JAL, 0, 0, 0, jump);
         continue_gate->generate_CFG(node);
+        node.instructions.pop_back(), node.instructions.pop_back();
+        rs2 = node.latest_rd();
         ADDI_ins(node, 0, "FOR_" + to_string(for_line));
-        branch_ins(node, continue_gate->generate_str(), after_end_for, 0);
-        instruction tmp_jal = node.instructions[node.instructions.size() - 1];
-        node.instructions.pop_back();
-        int index_1 = node.instructions.size() - 1;
+        ADDI_ins(node, 0);
+        rs1 = node.latest_rd();
+        code = (1 << 10) | (1 << 9) | (1 << 14) | 0b1100011| ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15);
+        node.instructions.push_back(instruction(code, BLT, 0, rs1, rs2, 12));
         ADDI_ins(node, 1, "FOR_" + to_string(for_line));
-        node.instructions[index_1].code |= (1 << 9);
-        node.instructions[index_1].imm = 12;
-        node.instructions.push_back(tmp_jal);
+        jump_ins(node, after_end_for);
         CFG[for_line] = node;
         generate_CFG_(move(stmts), -1);
         CFG_node node_(for_line);

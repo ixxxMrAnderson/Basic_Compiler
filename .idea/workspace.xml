@@ -15,12 +15,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AST.h" beforeDir="false" afterPath="$PROJECT_DIR$/AST.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Instruction Generator.h" beforeDir="false" afterPath="$PROJECT_DIR$/Instruction Generator.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parser.h" beforeDir="false" afterPath="$PROJECT_DIR$/Parser.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/Basic_Compiler.exe" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/Basic_Compiler.exe" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/CXX.includecache" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/CXX.includecache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/main.cpp.obj" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/main.cpp.obj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/objects.a" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/objects.a" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,7 +41,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../RISCV" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
   </component>
   <component name="RunManager">
     <configuration name="Basic_Compiler" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Basic_Compiler" TARGET_NAME="Basic_Compiler" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="Basic_Compiler" RUN_TARGET_NAME="Basic_Compiler">
@@ -83,7 +78,8 @@
       <workItem from="1596120854247" duration="31743000" />
       <workItem from="1596240291120" duration="31933000" />
       <workItem from="1596375240744" duration="2703000" />
-      <workItem from="1596416292162" duration="30277000" />
+      <workItem from="1596416292162" duration="31337000" />
+      <workItem from="1596589330115" duration="14486000" />
     </task>
     <servers />
   </component>
@@ -95,22 +91,22 @@
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state x="413" y="62" key="FileChooserDialogImpl/0.0.1366.728@0.0.1366.728" timestamp="1596505076259" />
-    <state width="1296" height="279" key="GridCell.Tab.0.bottom" timestamp="1596533858356">
+    <state width="1296" height="156" key="GridCell.Tab.0.bottom" timestamp="1596622992583">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1296" height="279" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1596533858356" />
-    <state width="1296" height="279" key="GridCell.Tab.0.center" timestamp="1596533858355">
+    <state width="1296" height="156" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1596622992583" />
+    <state width="1296" height="156" key="GridCell.Tab.0.center" timestamp="1596622992583">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1296" height="279" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1596533858355" />
-    <state width="1296" height="279" key="GridCell.Tab.0.left" timestamp="1596533858355">
+    <state width="1296" height="156" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1596622992583" />
+    <state width="1296" height="156" key="GridCell.Tab.0.left" timestamp="1596622992582">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1296" height="279" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1596533858355" />
-    <state width="1296" height="279" key="GridCell.Tab.0.right" timestamp="1596533858355">
+    <state width="1296" height="156" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1596622992582" />
+    <state width="1296" height="156" key="GridCell.Tab.0.right" timestamp="1596622992583">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1296" height="279" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1596533858355" />
+    <state width="1296" height="156" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1596622992583" />
     <state x="300" y="147" key="com.intellij.ide.util.TipDialog" timestamp="1596416320719">
       <screen x="0" y="0" width="1366" height="728" />
     </state>

@@ -97,8 +97,6 @@ int new_mem_space(string val){
         return mem;
     } else return val2mem[val];
 }
-void STORE_ins(CFG_node &node, int rs1, int rs2, int imm = 0);
-void ADDI_ins(CFG_node &node, int imm, string rd = "", int rs1 = 0);
 int new_reg(string val = ""){
     if (val == "!") return 10;
     if (for_lines.find(val) != for_lines.end()) return for_lines[val];
@@ -123,13 +121,15 @@ void LOAD_ins(CFG_node &node, int rs, int rd, int imm = 0){
     node.instructions.push_back(instruction(code, LW, rd, rs, 0, imm));
 }
 
-void STORE_ins(CFG_node &node, int rs1, int rs2, int imm){
+void STORE_ins(CFG_node &node, int rs1, int rs2, int imm = 0){
     uint32_t code = ((imm & 0b11111) << 7) | (((imm >> 5) & 0x7f) << 25) | ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15) | (1 << 13) | 0b0100011;
     node.instructions.push_back(instruction(code, SW, 0, rs1, rs2, imm));
 }
 
-void ADDI_ins(CFG_node &node, int imm, string rd, int rs1){
-    int rd_ = new_reg(rd);
+void ADDI_ins(CFG_node &node, int imm, string rd = "", int rs1 = 0, int rd__ = 0){
+    int rd_ = 0;
+    if (rd__) rd_ = rd__;
+    else rd_ = new_reg(rd);
     if (imm > 1024){
         if (((imm >> 12) << 12) == imm){
             uint32_t code = ((imm >> 12) << 12) | ((rd_ & 0b11111) << 7) | 0b0110111;
@@ -151,29 +151,20 @@ void ADDI_ins(CFG_node &node, int imm, string rd, int rs1){
     node.instructions.push_back(instruction(code, ADDI, rd_, rs1, 0, imm));
 }
 
-void binop_ins(CFG_node &node, BINOP binop, string LHS, string RHS){
+void jump_ins(CFG_node &node, int jump);
+void binop_ins(CFG_node &node, BINOP binop, string LHS, string RHS, int RHS_rd, int index_1_){
     uint32_t code = 0;
-    int addr = 0;
-    if (isdigit_(LHS)) ADDI_ins(node, strtod(LHS.c_str(), 0));
-    else {
+    int addr = 0, index_2 = 0, rs1 = 0;
+    if (isdigit_(LHS)) {
+        ADDI_ins(node, strtod(LHS.c_str(), 0));
+        rs1 = node.latest_rd();
+    } else {
         addr = val2mem[LHS];
         ADDI_ins(node, (addr >> 12) << 12);
         LOAD_ins(node, node.latest_rd(), new_reg(), addr - ((addr >> 12) << 12));
+        rs1 = node.latest_rd();
     }
-//    if (binop == AND_){
-//
-//    }
-//    if (binop == OR_){
-//
-//    }
-    int rs1 = node.latest_rd();
-    if (isdigit_(RHS)) ADDI_ins(node, strtod(RHS.c_str(), 0));
-    else {
-        addr = val2mem[RHS];
-        ADDI_ins(node, (addr >> 12) << 12);
-        LOAD_ins(node, node.latest_rd(), new_reg(), addr - ((addr >> 12) << 12));
-    }
-    int rs2 = node.latest_rd(), rd = 0, rd1 = 0, rd2 = 0, imm = 0;
+    int rs2 = RHS_rd, rd = 0, rd1 = 0, rd2 = 0, imm = 0;
     switch (binop){
         case ADD:
             rd = new_reg("(" + LHS + "+" + RHS + ")");
@@ -252,69 +243,24 @@ void binop_ins(CFG_node &node, BINOP binop, string LHS, string RHS){
             node.instructions.push_back(instruction(code, XORI, rd, rd, 0, 1));
             break;
     }
+    if (binop == AND || binop == OR){
+        jump_ins(node, 8);
+        index_2 = node.instructions.size() - 1;
+        if (binop == AND) ADDI_ins(node, 0, "", 0, rd);
+        else ADDI_ins(node, 1, "", 0, rd);
+        int jump = (index_2 - index_1_) * 4 + 4;
+        uint32_t code = ((jump & 0x7fe) << 20) | (((jump >> 20) & 1) << 31) | (((jump >> 11) & 1) << 20) |
+                        (((jump >> 12) & 0xff) << 12) | 0b1101111;
+        node.instructions[index_1_] = instruction(code, JAL, 0, 0, 0, jump);
+    }
     addr = new_mem_space(reg2val[rd]);
     ADDI_ins(node, (addr >> 12) << 12);
     STORE_ins(node, node.latest_rd(), rd, addr - ((addr >> 12) << 12));
 }
 
-void assign_ins(CFG_node &node, string to, string from){
-    if (isdigit_(from)) ADDI_ins(node, strtod(from.c_str(), 0));
-    else{
-        int addr = val2mem[from];
-        ADDI_ins(node, (addr >> 12) << 12);
-        LOAD_ins(node, node.latest_rd(), new_reg(), addr - ((addr >> 12) << 12));
-    }
-    int rs = node.latest_rd(), addr = new_mem_space(to);
-    ADDI_ins(node, (addr >> 12) << 12);
-    STORE_ins(node, node.latest_rd(), rs, addr - ((addr >> 12) << 12));
-}
-
-void input_ins(CFG_node &node, string to){
-    int tmp = 0;
-    printf("input %s:\n", to.c_str());
-    scanf("%d", &tmp);
-    ADDI_ins(node, tmp, to);
-    int rs = node.latest_rd(), addr = new_mem_space(to);
-    ADDI_ins(node, (addr >> 12) << 12);
-    STORE_ins(node, node.latest_rd(), rs, addr - ((addr >> 12) << 12));
-}
-
-void return_ins(CFG_node &node, string to){
-    if (isdigit_(to)) ADDI_ins(node, strtod(to.c_str(), 0), "!");
-    else {
-        int addr = val2mem[to];
-        ADDI_ins(node, (addr >> 12) << 12);
-        LOAD_ins(node, node.latest_rd(), new_reg("!"), addr - ((addr >> 12) << 12));
-    }
-    node.instructions.push_back(instruction(0xff00513));
-}
-
 void jump_ins(CFG_node &node, int jump){
     uint32_t code = ((jump & 0x7fe) << 20) | (((jump >> 20) & 1) << 31) | (((jump >> 11) & 1) << 20) | (((jump >> 12) & 0xff) << 12) | 0b1101111;
     node.instructions.push_back(instruction(code, JAL, 0, 0, 0, jump));
-}
-
-void branch_ins(CFG_node &node, string gate, int jump, bool flag){
-    int rs2 = 0;
-    if (for_lines.find(gate) != for_lines.end()) {
-        rs2 = for_lines[gate];
-    } else {
-        int addr = new_mem_space(gate);
-        ADDI_ins(node, (addr >> 12) << 12);
-        LOAD_ins(node, node.latest_rd(), new_reg(), addr - ((addr >> 12) << 12));
-        rs2 = node.latest_rd();
-    }
-    uint32_t code;
-    ADDI_ins(node, 0);
-    int rs1 = node.latest_rd();
-    if (flag){
-        code = (1 << 10) | 0b1100011| ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15);
-        node.instructions.push_back(instruction(code, BEQ, 0, rs1, rs2, 8));
-    } else {
-        code = (1 << 10) | (1 << 14) | 0b1100011| ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15);
-        node.instructions.push_back(instruction(code, BLT, 0, rs1, rs2, 8));
-    }
-    jump_ins(node, jump);
 }
 
 int passed_ = 0;
