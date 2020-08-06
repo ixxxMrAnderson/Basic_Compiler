@@ -18,7 +18,7 @@ enum OPCODE{
 };
 
 const char opcode_str[16][10]{
-        "LW", "ADDI", "XORI", "SW", "BEQ", "BLT", "LUI", "JAL", "ADD_", "SUB_", "TIMES_", "DIVIDE_", "SLT", "OR_", "AND_", "UNKNOWN"
+    "LW", "ADDI", "XORI", "SW", "BEQ", "BLT", "LUI", "JAL", "ADD_", "SUB_", "TIMES_", "DIVIDE_", "SLT", "OR_", "AND_", "UNKNOWN"
 };
 
 enum BINOP{
@@ -32,7 +32,7 @@ enum TOKEN_TYPE{
 };
 
 const char binop_str[12][3]{
-        "+", "-", "*", "/", "==", "!=", "<", ">", "<=", ">=", "&&","||"
+    "+", "-", "*", "/", "==", "!=", "<", ">", "<=", ">=", "&&","||"
 };
 
 map<string, int> for_lines;
@@ -66,18 +66,12 @@ public:
 };
 
 map<int, CFG_node> CFG;
-void print_CFG(){
-    printf("\nCFG_\n");
-    for(auto i = CFG.begin(); i != CFG.end(); ++i) {
-        if (i->second.jump >= 0) {
-            printf("%d > %d\n", i->first, i->second.jump);
-        } else if (i->second.jump == -2){
-            printf("%d > exit\n", i->first);
-        } else printf("%d_", i->first);
-    }
-    printf("\n\n");
+
+void print_dump(){
+    printf(".dump\n\n");
     for(auto i = CFG.begin(); i != CFG.end(); ++i){
-        if (i->second.jump) printf("%d > %d\n", i->first, i->second.jump);
+        if (i->second.jump >= 0) printf("%d > %d\n", i->first, i->second.jump);
+        else if (i->second.jump == -2) printf("%d > exit\n", i->first);
         else printf("%d_\n", i->first);
         for (int j = 0; j < i->second.instructions.size(); ++j){
             i->second.instructions[j].print_dump();
@@ -116,14 +110,26 @@ void log_error(const char *text_){
     exit(0);
 }
 
-void LOAD_ins(CFG_node &node, int rs, int rd, int imm = 0){
+void LW_ins(CFG_node &node, int rs, int rd, int imm = 0){
     uint32_t code = (imm << 20) | ((rs & 0b11111) << 15) | ((rd & 0b11111) << 7) | (1 << 13) | 0b0000011;
     node.instructions.push_back(instruction(code, LW, rd, rs, 0, imm));
 }
 
-void STORE_ins(CFG_node &node, int rs1, int rs2, int imm = 0){
+void SW_ins(CFG_node &node, int rs1, int rs2, int imm = 0){
     uint32_t code = ((imm & 0b11111) << 7) | (((imm >> 5) & 0x7f) << 25) | ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15) | (1 << 13) | 0b0100011;
     node.instructions.push_back(instruction(code, SW, 0, rs1, rs2, imm));
+}
+
+void BEQ_ins(CFG_node &node, int rs1, int rs2, int imm = 0){
+    uint32_t code = (((imm >> 11) & 1) << 7) | (((imm >> 12) & 1) << 31) | (((imm >> 5) & 0x3f) << 25) | ((imm & 0b11110) << 7);
+    code |= 0b1100011| ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15);
+    node.instructions.push_back(instruction(code, BEQ, 0, rs1, rs2, imm));
+}
+
+void BLT_ins(CFG_node &node, int rs1, int rs2, int imm = 0){
+    uint32_t code = (((imm >> 11) & 1) << 7) | (((imm >> 12) & 1) << 31) | (((imm >> 5) & 0x3f) << 25) | ((imm & 0b11110) << 7);
+    code |= (1 << 14) | 0b1100011| ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15);
+    node.instructions.push_back(instruction(code, BLT, 0, rs1, rs2, imm));
 }
 
 void ADDI_ins(CFG_node &node, int imm, string rd = "", int rs1 = 0, int rd__ = 0){
@@ -151,7 +157,11 @@ void ADDI_ins(CFG_node &node, int imm, string rd = "", int rs1 = 0, int rd__ = 0
     node.instructions.push_back(instruction(code, ADDI, rd_, rs1, 0, imm));
 }
 
-void jump_ins(CFG_node &node, int jump);
+void JAL_ins(CFG_node &node, int jump){
+    uint32_t code = ((jump & 0x7fe) << 20) | (((jump >> 20) & 1) << 31) | (((jump >> 11) & 1) << 20) | (((jump >> 12) & 0xff) << 12) | 0b1101111;
+    node.instructions.push_back(instruction(code, JAL, 0, 0, 0, jump));
+}
+
 void binop_ins(CFG_node &node, BINOP binop, string LHS, string RHS, int RHS_rd, int index_1_){
     uint32_t code = 0;
     int addr = 0, index_2 = 0, rs1 = 0;
@@ -161,7 +171,7 @@ void binop_ins(CFG_node &node, BINOP binop, string LHS, string RHS, int RHS_rd, 
     } else {
         addr = val2mem[LHS];
         ADDI_ins(node, (addr >> 12) << 12);
-        LOAD_ins(node, node.latest_rd(), new_reg(), addr - ((addr >> 12) << 12));
+        LW_ins(node, node.latest_rd(), new_reg(), addr - ((addr >> 12) << 12));
         rs1 = node.latest_rd();
     }
     int rs2 = RHS_rd, rd = 0, rd1 = 0, rd2 = 0, imm = 0;
@@ -244,7 +254,7 @@ void binop_ins(CFG_node &node, BINOP binop, string LHS, string RHS, int RHS_rd, 
             break;
     }
     if (binop == AND || binop == OR){
-        jump_ins(node, 8);
+        JAL_ins(node, 8);
         index_2 = node.instructions.size() - 1;
         if (binop == AND) ADDI_ins(node, 0, "", 0, rd);
         else ADDI_ins(node, 1, "", 0, rd);
@@ -255,17 +265,12 @@ void binop_ins(CFG_node &node, BINOP binop, string LHS, string RHS, int RHS_rd, 
     }
     addr = new_mem_space(reg2val[rd]);
     ADDI_ins(node, (addr >> 12) << 12);
-    STORE_ins(node, node.latest_rd(), rd, addr - ((addr >> 12) << 12));
-}
-
-void jump_ins(CFG_node &node, int jump){
-    uint32_t code = ((jump & 0x7fe) << 20) | (((jump >> 20) & 1) << 31) | (((jump >> 11) & 1) << 20) | (((jump >> 12) & 0xff) << 12) | 0b1101111;
-    node.instructions.push_back(instruction(code, JAL, 0, 0, 0, jump));
+    SW_ins(node, node.latest_rd(), rd, addr - ((addr >> 12) << 12));
 }
 
 int passed_ = 0;
 void generate_code(){
-    printf("\n\n");
+    printf(".data\n\n");
     bool new_block = 1;
     int addr = 0, jump, cnt_print = 0;
     for(auto i = CFG.begin(); i != CFG.end(); ++i) {
@@ -279,7 +284,7 @@ void generate_code(){
             }
             jump -= (passed_ - 4);
             i->second.instructions.pop_back();
-            jump_ins(i->second, jump);
+            JAL_ins(i->second, jump);
         }
         if (new_block) {
             printf("@%08X\n", addr);
@@ -295,7 +300,7 @@ void generate_code(){
             printf("\n\n");
         }
     }
-    printf("\n\nmemory_space_used_%08X(byte)\n", passed_);
+    printf("\nmemory_space_used_%08X(byte)\n", passed_);
 }
 
 #endif //BASIC_COMPLIER_INSTRUCTION_GENERATOR_H
