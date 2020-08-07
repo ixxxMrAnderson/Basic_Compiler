@@ -150,7 +150,6 @@ public:
                 }
 //                new_mem_space(node, lvalue->atom_expr->atom_name+"_size_"+to_string(i));
             }
-            printf("%d\n", array_size[lvalue->atom_expr->atom_name][0]);
             string tmp_name = lvalue->atom_expr->atom_name+"_size_"+to_string(rvalue->indexes.size());
             ADDI_ins(node, 4);
             int rs2 = node.latest_rd();
@@ -167,7 +166,7 @@ public:
                     rs2 = node.latest_rd();
                     if (i == rvalue->indexes.size() - 1) ADDI_ins(node, 4);
                     else {
-                        new_mem_space(node, rvalue->indexes[i + 1]->atom_expr->atom_name);
+                        new_mem_space(node, lvalue->atom_expr->atom_name+"_size_"+to_string(i + 1));
                         LW_ins(node, node.latest_rd(), new_reg());
                     }
                     int rd = new_reg();
@@ -178,7 +177,6 @@ public:
                 rs2 = node.latest_rd();
                 new_mem_space(node, tmp_name);
                 SW_ins(node, node.latest_rd(), rs2);
-                printf("%s_size[%d] = %d\n", lvalue->atom_expr->atom_name.c_str(), i, array_size[lvalue->atom_expr->atom_name][i]);
             }
             if (array_size[lvalue->atom_expr->atom_name][0] != -1) {
                 new_mem_space(node, lvalue->atom_expr->atom_name, array_size[lvalue->atom_expr->atom_name][0]);
