@@ -27,8 +27,10 @@ unique_ptr<expr_AST> identifier_parse(){
 
 unique_ptr<expr_AST> paren_parse(){
     int tmp_token = cur_token;
+    //if (tmp_token == '[') printf("parse [\n");
     get_next_token();
     auto contents = expr_parse();
+    //if (cur_token == ']') printf("contents: %s\n", contents->generate_str().c_str());
     if (!contents) return nullptr;
     if (tmp_token == '(' && cur_token != ')') log_error("expected ')'");
     if (tmp_token == '[' && cur_token != ']') log_error("expected ']'");
@@ -36,7 +38,6 @@ unique_ptr<expr_AST> paren_parse(){
     return contents;
 }
 
-//handle atom and paren unit
 unique_ptr<expr_AST> primary_parse(){
     auto return_ = make_unique<expr_AST>();
     switch (cur_token){
@@ -50,11 +51,12 @@ unique_ptr<expr_AST> primary_parse(){
         default:
             return_ = nullptr;
     }
-    while (cur_token == '[') return_->push(paren_parse());
+    while (cur_token == '[') return_->push(move(paren_parse()));
+    //if (return_->indexes.size()) printf("primary_parse: %s\n", return_->generate_str().c_str());
     return return_;
 }
 
-map<BINOP, int> binop_precedence; // this holds the precedence for each binary operator that is defined.
+map<BINOP, int> binop_precedence;
 void binop_login(){
     binop_precedence[OR] = 20;
     binop_precedence[AND] = 40;

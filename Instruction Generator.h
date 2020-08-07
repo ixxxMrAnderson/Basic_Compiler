@@ -14,11 +14,11 @@
 using namespace std;
 
 enum OPCODE{
-    LW, ADDI, XORI, SW, BEQ, BLT, LUI, JAL, ADD_, SUB_, TIMES_, DIVIDE_, SLT, OR_, AND_, UNKNOWN
+    INPUT, LW, ADDI, XORI, SW, BEQ, BLT, LUI, JAL, ADD_, SUB_, TIMES_, DIVIDE_, SLT, OR_, AND_, UNKNOWN
 };
 
-const char opcode_str[16][10]{
-    "LW", "ADDI", "XORI", "SW", "BEQ", "BLT", "LUI", "JAL", "ADD_", "SUB_", "TIMES_", "DIVIDE_", "SLT", "OR_", "AND_", "UNKNOWN"
+const char opcode_str[17][10]{
+    "INPUT", "LW", "ADDI", "XORI", "SW", "BEQ", "BLT", "LUI", "JAL", "ADD_", "SUB_", "TIMES_", "DIVIDE_", "SLT", "OR_", "AND_", "UNKNOWN"
 };
 
 enum BINOP{
@@ -36,6 +36,7 @@ const char binop_str[12][3]{
 };
 
 map<string, int> for_lines;
+map<string, vector<int>> array_size;
 map<int, string> reg2val;
 map<string, int> val2mem;
 map<int, string> mem2val;
@@ -82,21 +83,35 @@ void print_dump(){
 
 //-------------------------------------------------------------------------------------
 
+int offset_ = 0;
 int new_reg_ = 0, new_mem_space_ = 0x4000;
-int new_mem_space(string val){
-    if (val2mem.find(val) == val2mem.end()){
-        int mem = new_mem_space_;
-        new_mem_space_ += 4;
-        val2mem[val] = mem, mem2val[mem] = val;
-        return mem;
-    } else return val2mem[val];
-}
+void ADDI_ins(CFG_node &node, int imm, string rd = "", int rs1 = 0, int rd__ = 0);
 int new_reg(string val = ""){
-    if (val == "!") return 10;
+    if (val == "return_") return 10; // return
+    if (val == "addr_1") return 11; // tmp_addr_1
+    if (val == "addr_2") return 12; // tmp_addr_2
+    if (val == "gate_") return 13; // tmp_store for if/for gate
+    if (val == "offset_") return 31; // offset
     if (for_lines.find(val) != for_lines.end()) return for_lines[val];
-    int reg = (new_reg_++) % 20 + 11;
+    int reg = (new_reg_++) % 17 + 14;
     reg2val[reg] = val;
     return reg;
+}
+void new_mem_space(CFG_node &node, string val, int new_space = 4, string rd = ""){
+    if (val2mem.find(val) == val2mem.end()){
+        int mem = new_mem_space_;
+        new_mem_space_ += new_space;
+        val2mem[val] = mem, mem2val[mem] = val;
+        ADDI_ins(node, mem, rd);
+    } else {
+        ADDI_ins(node, val2mem[val], rd);
+        if (offset_ > val2mem[val]) return;
+    }
+    if (offset_) {
+        int rd_ = new_reg(rd);
+        uint32_t code = (31 << 20) | (node.latest_rd() << 15) | ((rd_ & 0b11111) << 7) | 0b0110011;
+        node.instructions.push_back(instruction(code, ADD_, rd_, node.latest_rd(), 31));
+    }
 }
 bool isdigit_(string x){
     if (!isdigit(x[0]) && x[0] != '-') return 0;
@@ -111,49 +126,49 @@ void log_error(const char *text_){
 }
 
 void LW_ins(CFG_node &node, int rs, int rd, int imm = 0){
-    uint32_t code = (imm << 20) | ((rs & 0b11111) << 15) | ((rd & 0b11111) << 7) | (1 << 13) | 0b0000011;
+    uint32_t code = (imm << 20) | (rs << 15) | (rd << 7) | (1 << 13) | 0b0000011;
     node.instructions.push_back(instruction(code, LW, rd, rs, 0, imm));
 }
 
 void SW_ins(CFG_node &node, int rs1, int rs2, int imm = 0){
-    uint32_t code = ((imm & 0b11111) << 7) | (((imm >> 5) & 0x7f) << 25) | ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15) | (1 << 13) | 0b0100011;
+    uint32_t code = ((imm & 0b11111) << 7) | (((imm >> 5) & 0x7f) << 25) | (rs2 << 20) | (rs1 << 15) | (1 << 13) | 0b0100011;
     node.instructions.push_back(instruction(code, SW, 0, rs1, rs2, imm));
 }
 
 void BEQ_ins(CFG_node &node, int rs1, int rs2, int imm = 0){
     uint32_t code = (((imm >> 11) & 1) << 7) | (((imm >> 12) & 1) << 31) | (((imm >> 5) & 0x3f) << 25) | ((imm & 0b11110) << 7);
-    code |= 0b1100011| ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15);
+    code |= 0b1100011| (rs2 << 20) | (rs1 << 15);
     node.instructions.push_back(instruction(code, BEQ, 0, rs1, rs2, imm));
 }
 
 void BLT_ins(CFG_node &node, int rs1, int rs2, int imm = 0){
     uint32_t code = (((imm >> 11) & 1) << 7) | (((imm >> 12) & 1) << 31) | (((imm >> 5) & 0x3f) << 25) | ((imm & 0b11110) << 7);
-    code |= (1 << 14) | 0b1100011| ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15);
+    code |= (1 << 14) | 0b1100011| (rs2 << 20) | (rs1 << 15);
     node.instructions.push_back(instruction(code, BLT, 0, rs1, rs2, imm));
 }
 
-void ADDI_ins(CFG_node &node, int imm, string rd = "", int rs1 = 0, int rd__ = 0){
+void ADDI_ins(CFG_node &node, int imm, string rd, int rs1, int rd__){
     int rd_ = 0;
     if (rd__) rd_ = rd__;
     else rd_ = new_reg(rd);
     if (imm > 1024){
         if (((imm >> 12) << 12) == imm){
-            uint32_t code = ((imm >> 12) << 12) | ((rd_ & 0b11111) << 7) | 0b0110111;
+            uint32_t code = ((imm >> 12) << 12) | (rd_ << 7) | 0b0110111;
             node.instructions.push_back(instruction(code, LUI, rd_, rs1, 0, imm));
             return;
         } else {
             int rd1 = new_reg();
-            uint32_t code = ((imm >> 12) << 12) | ((rd1 & 0b11111) << 7) | 0b0110111;
+            uint32_t code = ((imm >> 12) << 12) | (rd1 << 7) | 0b0110111;
             node.instructions.push_back(instruction(code, LUI, rd1, rs1, 0, imm));
             int rd2 = new_reg();
-            code = (imm << 20) | ((rs1 & 0b11111) << 15) | ((rd2 & 0b11111) << 7) | 0b0010011;
+            code = (imm << 20) | (rs1 << 15) | (rd2 << 7) | 0b0010011;
             node.instructions.push_back(instruction(code, ADDI, rd2, rs1, 0, imm));
-            code = ((rd2 & 0b11111) << 20) | ((rd1 & 0b11111) << 15) | ((rd_ & 0b11111) << 7) | 0b0110011;
+            code = (rd2 << 20) | (rd1 << 15) | (rd_ << 7) | 0b0110011;
             node.instructions.push_back(instruction(code, ADD_, rd_, rd1, rd2));
             return;
         }
     }
-    uint32_t code = (imm << 20) | ((rs1 & 0b11111) << 15) | ((rd_ & 0b11111) << 7) | 0b0010011;
+    uint32_t code = (imm << 20) | (rs1 << 15) | (rd_ << 7) | 0b0010011;
     node.instructions.push_back(instruction(code, ADDI, rd_, rs1, 0, imm));
 }
 
@@ -162,110 +177,125 @@ void JAL_ins(CFG_node &node, int jump){
     node.instructions.push_back(instruction(code, JAL, 0, 0, 0, jump));
 }
 
-void binop_ins(CFG_node &node, BINOP binop, string LHS, string RHS, int RHS_rd, int index_1_){
+void binop_ins(CFG_node &node, BINOP binop, string LHS, string RHS, int RHS_rd, int index_1_, int default_rd = 0, int LHS_addr = 0){
     uint32_t code = 0;
-    int addr = 0, index_2 = 0, rs1 = 0;
+    int index_2 = 0;
     if (isdigit_(LHS)) {
         ADDI_ins(node, strtod(LHS.c_str(), 0));
-        rs1 = node.latest_rd();
     } else {
-        addr = val2mem[LHS];
-        ADDI_ins(node, (addr >> 12) << 12);
-        LW_ins(node, node.latest_rd(), new_reg(), addr - ((addr >> 12) << 12));
-        rs1 = node.latest_rd();
+        if (LHS_addr){
+            new_mem_space(node, LHS + "_addr");
+            LW_ins(node, node.latest_rd(), new_reg());
+            LW_ins(node, node.latest_rd(), new_reg());
+        } else {
+            new_mem_space(node, LHS);
+            LW_ins(node, node.latest_rd(), new_reg());
+        }
     }
-    int rs2 = RHS_rd, rd = 0, rd1 = 0, rd2 = 0, imm = 0;
+    int rs1 = node.latest_rd(), rs2 = RHS_rd, rd = 0, rd1 = 0, rd2 = 0, imm = 0;
     switch (binop){
         case ADD:
-            rd = new_reg("(" + LHS + "+" + RHS + ")");
-            code = ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15) | ((rd & 0b11111) << 7) | 0b0110011;
+            if (!default_rd) rd = new_reg("(" + LHS + "+" + RHS + ")");
+            else rd = default_rd;
+            code = (rs2 << 20) | (rs1 << 15) | (rd << 7) | 0b0110011;
             node.instructions.push_back(instruction(code, ADD_, rd, rs1, rs2));
             break;
         case SUB:
-            rd = new_reg("(" + LHS + "-" + RHS + ")");
-            code = (1 << 30) | ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15) | ((rd & 0b11111) << 7) | 0b0110011;
+            if (!default_rd) rd = new_reg("(" + LHS + "-" + RHS + ")");
+            else rd = default_rd;
+            code = (1 << 30) | (rs2 << 20) | (rs1 << 15) | (rd << 7) | 0b0110011;
             node.instructions.push_back(instruction(code, SUB_, rd, rs1, rs2));
             break;
         case TIMES:
-            rd = new_reg("(" + LHS + "*" + RHS + ")");
-            code = (1 << 29) | ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15) | ((rd & 0b11111) << 7) | 0b0110011;
+            if (!default_rd) rd = new_reg("(" + LHS + "*" + RHS + ")");
+            else rd = default_rd;
+            code = (1 << 29) | (rs2 << 20) | (rs1 << 15) | (rd << 7) | 0b0110011;
             node.instructions.push_back(instruction(code, TIMES_, rd, rs1, rs2));
             break;
         case DIVIDE:
-            rd = new_reg("(" + LHS + "/" + RHS + ")");
-            code = (1 << 28) | ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15) | ((rd & 0b11111) << 7) | 0b0110011;
+            if (!default_rd) rd = new_reg("(" + LHS + "/" + RHS + ")");
+            else rd = default_rd;
+            code = (1 << 28) | (rs2 << 20) | (rs1 << 15) | (rd << 7) | 0b0110011;
             node.instructions.push_back(instruction(code, DIVIDE_, rd, rs1, rs2));
             break;
         case EQ:
-            rd = new_reg("(" + LHS + "==" + RHS + ")");
+            if (!default_rd) rd = new_reg("(" + LHS + "==" + RHS + ")");
+            else rd = default_rd;
             rd1 = new_reg(), rd2 = new_reg();
-            code = ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15) | ((rd1 & 0b11111) << 7) | 0b0110011 | (2 << 12);
+            code = (rs2 << 20) | (rs1 << 15) | (rd1 << 7) | 0b0110011 | (2 << 12);
             node.instructions.push_back(instruction(code, SLT, rd1, rs1, rs2));
-            code = ((rs1 & 0b11111) << 20) | ((rs2 & 0b11111) << 15) | ((rd2 & 0b11111) << 7) | 0b0110011 | (2 << 12);
+            code = (rs1 << 20) | (rs2 << 15) | (rd2 << 7) | 0b0110011 | (2 << 12);
             node.instructions.push_back(instruction(code, SLT, rd2, rs2, rs1));
-            code = ((rd2 & 0b11111) << 20) | ((rd1 & 0b11111) << 15) | ((rd & 0b11111) << 7) | 0b0110011 | (6 << 12);
+            code = (rd2 << 20) | (rd1 << 15) | (rd << 7) | 0b0110011 | (6 << 12);
             node.instructions.push_back(instruction(code, OR_, rd, rd1, rd2));
-            code = (1 << 20) | ((rd & 0b11111) << 15) | ((rd & 0b11111) << 7) | 0b0010011 | (4 << 12);
+            code = (1 << 20) | (rd << 15) | (rd << 7) | 0b0010011 | (4 << 12);
             node.instructions.push_back(instruction(code, XORI, rd, rd, 0, 1));
             break;
         case NOT_EQ:
-            rd = new_reg("(" + LHS + "!=" + RHS + ")");
+            if (!default_rd) rd = new_reg("(" + LHS + "!=" + RHS + ")");
+            else rd = default_rd;
             rd1 = new_reg(), rd2 = new_reg();
-            code = ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15) | ((rd1 & 0b11111) << 7) | 0b0110011 | (2 << 12);
+            code = (rs2 << 20) | (rs1 << 15) | (rd1 << 7) | 0b0110011 | (2 << 12);
             node.instructions.push_back(instruction(code, SLT, rd1, rs1, rs2));
-            code = ((rs1 & 0b11111) << 20) | ((rs2 & 0b11111) << 15) | ((rd2 & 0b11111) << 7) | 0b0110011 | (2 << 12);
+            code = (rs1 << 20) | (rs2 << 15) | (rd2 << 7) | 0b0110011 | (2 << 12);
             node.instructions.push_back(instruction(code, SLT, rd2, rs2, rs1));
-            code = ((rd2 & 0b11111) << 20) | ((rd1 & 0b11111) << 15) | ((rd & 0b11111) << 7) | 0b0110011 | (6 << 12);
+            code = (rd2 << 20) | (rd1 << 15) | (rd << 7) | 0b0110011 | (6 << 12);
             node.instructions.push_back(instruction(code, OR_, rd, rd1, rd2));
             break;
         case AND:
-            rd = new_reg("(" + LHS + "&&" + RHS + ")");
-            code = ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15) | ((rd & 0b11111) << 7) | 0b0110011 | (7 << 12);
+            if (!default_rd) rd = new_reg("(" + LHS + "&&" + RHS + ")");
+            else rd = default_rd;
+            code = (rs2 << 20) | (rs1 << 15) | (rd << 7) | 0b0110011 | (7 << 12);
             node.instructions.push_back(instruction(code, AND_, rd, rs1, rs2));
             break;
         case OR:
-            rd = new_reg("(" + LHS + "||" + RHS + ")");
-            code = ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15) | ((rd & 0b11111) << 7) | 0b0110011 | (6 << 12);
+            if (!default_rd) rd = new_reg("(" + LHS + "||" + RHS + ")");
+            else rd = default_rd;
+            code = (rs2 << 20) | (rs1 << 15) | (rd << 7) | 0b0110011 | (6 << 12);
             node.instructions.push_back(instruction(code, OR_, rd, rs1, rs2));
             break;
         case GREATER:
-            rd = new_reg("(" + LHS + ">" + RHS + ")");
-            code = ((rs1 & 0b11111) << 20) | ((rs2 & 0b11111) << 15) | ((rd & 0b11111) << 7) | 0b0110011 | (2 << 12);
+            if (!default_rd) rd = new_reg("(" + LHS + ">" + RHS + ")");
+            else rd = default_rd;
+            code = (rs1 << 20) | (rs2 << 15) | (rd << 7) | 0b0110011 | (2 << 12);
             node.instructions.push_back(instruction(code, SLT, rd, rs2, rs1));
             break;
         case GREATER_EQ:
-            rd = new_reg("(" + LHS + ">=" + RHS + ")");
-            code = ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15) | ((rd & 0b11111) << 7) | 0b0110011 | (2 << 12);
+            if (!default_rd) rd = new_reg("(" + LHS + ">=" + RHS + ")");
+            else rd = default_rd;
+            code = (rs2 << 20) | (rs1 << 15) | (rd << 7) | 0b0110011 | (2 << 12);
             node.instructions.push_back(instruction(code, SLT, rd, rs1, rs2));
-            code = (1 << 20) | ((rd & 0b11111) << 15) | ((rd & 0b11111) << 7) | 0b0010011 | (4 << 12);
+            code = (1 << 20) | (rd << 15) | (rd << 7) | 0b0010011 | (4 << 12);
             node.instructions.push_back(instruction(code, XORI, rd, rd, 0, 1));
             break;
         case SMALLER:
-            rd = new_reg("(" + LHS + "<" + RHS + ")");
-            code = ((rs2 & 0b11111) << 20) | ((rs1 & 0b11111) << 15) | ((rd & 0b11111) << 7) | 0b0110011 | (2 << 12);
+            if (!default_rd) rd = new_reg("(" + LHS + "<" + RHS + ")");
+            else rd = default_rd;
+            code = (rs2 << 20) | (rs1 << 15) | (rd << 7) | 0b0110011 | (2 << 12);
             node.instructions.push_back(instruction(code, SLT, rd, rs1, rs2));
             break;
         case SMALLER_EQ:
-            rd = new_reg("(" + LHS + "<=" + RHS + ")");
-            code = ((rs1 & 0b11111) << 20) | ((rs2 & 0b11111) << 15) | ((rd & 0b11111) << 7) | 0b0110011 | (2 << 12);
+            if (!default_rd) rd = new_reg("(" + LHS + "<=" + RHS + ")");
+            else rd = default_rd;
+            code = (rs1 << 20) | (rs2 << 15) | (rd << 7) | 0b0110011 | (2 << 12);
             node.instructions.push_back(instruction(code, SLT, rd, rs2, rs1));
-            code = (1 << 20) | ((rd & 0b11111) << 15) | ((rd & 0b11111) << 7) | 0b0010011 | (4 << 12);
+            code = (1 << 20) | (rd << 15) | (rd << 7) | 0b0010011 | (4 << 12);
             node.instructions.push_back(instruction(code, XORI, rd, rd, 0, 1));
             break;
     }
-    if (binop == AND || binop == OR){
-        JAL_ins(node, 8);
-        index_2 = node.instructions.size() - 1;
-        if (binop == AND) ADDI_ins(node, 0, "", 0, rd);
-        else ADDI_ins(node, 1, "", 0, rd);
-        int jump = (index_2 - index_1_) * 4 + 4;
-        uint32_t code = ((jump & 0x7fe) << 20) | (((jump >> 20) & 1) << 31) | (((jump >> 11) & 1) << 20) |
-                        (((jump >> 12) & 0xff) << 12) | 0b1101111;
-        node.instructions[index_1_] = instruction(code, JAL, 0, 0, 0, jump);
-    }
-    addr = new_mem_space(reg2val[rd]);
-    ADDI_ins(node, (addr >> 12) << 12);
-    SW_ins(node, node.latest_rd(), rd, addr - ((addr >> 12) << 12));
+//    if (binop == AND || binop == OR){
+//        JAL_ins(node, 8);
+//        index_2 = node.instructions.size() - 1;
+//        if (binop == AND) ADDI_ins(node, 0, "", 0, rd);
+//        else ADDI_ins(node, 1, "", 0, rd);
+//        int jump = (index_2 - index_1_) * 4 + 4;
+//        uint32_t code = ((jump & 0x7fe) << 20) | (((jump >> 20) & 1) << 31) | (((jump >> 11) & 1) << 20) |
+//                        (((jump >> 12) & 0xff) << 12) | 0b1101111;
+//        node.instructions[index_1_] = instruction(code, JAL, 0, 0, 0, jump);
+//    }
+    if (default_rd) return;
+    new_mem_space(node, reg2val[rd]);
+    SW_ins(node, node.latest_rd(), rd);
 }
 
 int passed_ = 0;
@@ -300,7 +330,7 @@ void generate_code(){
             printf("\n\n");
         }
     }
-    printf("\nmemory_space_used_%08X(byte)\n", passed_);
+    printf("\n\nmemory_space_used_%08X(byte)\n", passed_);
 }
 
 #endif //BASIC_COMPLIER_INSTRUCTION_GENERATOR_H

@@ -28,7 +28,7 @@
 28            LET total = total + 1
 29          END FOR
 30        END FOR
-31      END FOR
+31      END FOR 
 32    END FOR
 33  END FOR
 34 END FOR
