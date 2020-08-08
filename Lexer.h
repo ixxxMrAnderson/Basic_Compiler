@@ -39,6 +39,7 @@ int get_token(){
             do tmp_char = getchar();
             while (tmp_char != EOF && tmp_char != '\n' && tmp_char != '\r');
             if (tmp_char != EOF) {cin.putback(tmp_char); return REM_;}
+            else return EOF_;
         }
         else if (tmp_str == "LET") return LET_;
         else if (tmp_str == "INPUT") return INPUT_;
@@ -89,6 +90,7 @@ int get_token(){
     }
     else if (tmp_char == '*'){binop_token = TIMES; return binop_;}
     else if (tmp_char == '/'){binop_token = DIVIDE; return binop_;}
+    else if (tmp_char == '%'){binop_token = MOD; return binop_;}
     else if (tmp_char == '<'){
         if ((tmp_char = getchar()) == '=') binop_token = SMALLER_EQ;
         else binop_token = SMALLER, cin.putback(tmp_char);

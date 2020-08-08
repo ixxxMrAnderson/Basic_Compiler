@@ -60,19 +60,16 @@ public:
     }
     void push(unique_ptr<expr_AST> index_){indexes.push_back(move(index_));}
     void cal_addr(CFG_node &node, string rd_ = "addr_1"){
-        new_mem_space(node, this->atom_expr->atom_name, 4, rd_);
+        if (val2mem.find(atom_expr->atom_name+"_size_0") == val2mem.end()) log_error("calling operator []");
+        new_mem_space(node, this->atom_expr->atom_name, ADDI, new_reg(rd_), 4);
         for (int i = 0; i < indexes.size(); ++i) {
             if (indexes[i]->atom_expr) {
                 if (indexes[i]->atom_expr->atom_type == atom_AST::NUMBER) {
                     ADDI_ins(node, indexes[i]->value());
-                } else {
-                    new_mem_space(node, indexes[i]->generate_str());
-                    LW_ins(node, node.latest_rd(), new_reg());
-                }
+                } else new_mem_space(node, indexes[i]->generate_str(), LW, new_reg());
             } else indexes[i]->generate_CFG(node, new_reg());
             int rs1 = node.latest_rd();
-            new_mem_space(node, atom_expr->atom_name+"_size_"+to_string(i+1));
-            LW_ins(node, node.latest_rd(), new_reg());
+            new_mem_space(node, atom_expr->atom_name+"_size_"+to_string(i + 1), LW, new_reg());
             int rs2 = node.latest_rd(), rd = new_reg();
             uint32_t code = (1 << 29) | (rs2 << 20) | (rs1 << 15) | (rd << 7) | 0b0110011;
             node.instructions.push_back(instruction(code, TIMES_, rd, rs1, rs2));
@@ -88,43 +85,41 @@ public:
             if (indexes.size()) this->cal_addr(node);
             return;
         }
-//        if (binop == AND || binop == OR){
-//            LHS->generate_CFG(node, new_reg());
-//            if (LHS->atom_expr){
-//                if (LHS->atom_expr->atom_type == atom_AST::NUMBER) ADDI_ins(node, LHS->value());
-//                else if (LHS->indexes.size()) {
-//                    LW_ins(node, node.latest_rd(), new_reg());
-//                } else {
-//                    new_mem_space(node, LHS->generate_str());
-//                    LW_ins(node, node.latest_rd(), new_reg());
-//                }
-//            }
-//            int rs2 = node.latest_rd();
-//            ADDI_ins(node, 0);
-//            int rs1 = node.latest_rd();
-//            if (binop == OR) BEQ_ins(node, rs1, rs2, 8);
-//            else BLT_ins(node, rs1, rs2, 8);
-//            JAL_ins(node, 0);
-//            index_1 = node.instructions.size() - 1;
-//            if (binop == AND) new_mem_space(node, "(" + LHS->generate_str() + "&&" + RHS->generate_str() + ")");
-//            else new_mem_space(node, "(" + LHS->generate_str() + "||" + RHS->generate_str() + ")");
-//            SW_ins(node, node.latest_rd(), rs2);
-//        } else {
+        if (binop == AND || binop == OR){
+            LHS->generate_CFG(node, new_reg());
+            if (LHS->atom_expr){
+                if (LHS->atom_expr->atom_type == atom_AST::NUMBER) ADDI_ins(node, LHS->value());
+                else if (LHS->indexes.size()) {
+                    int last_rd = node.latest_rd();
+                    new_mem_space(node, LHS->generate_str() + "_addr", SW, last_rd);
+                    LW_ins(node, last_rd, new_reg());
+                } else {
+                    if (val2mem.find(LHS->generate_str()) == val2mem.end()) log_error(("undefined variable " + LHS->generate_str()).c_str());
+                    new_mem_space(node, LHS->generate_str(), LW, new_reg());
+                }
+            }
+            int rs2 = node.latest_rd();
+            ADDI_ins(node, 0);
+            int rs1 = node.latest_rd();
+            if (binop == OR) BEQ_ins(node, rs1, rs2, 8);
+            else BLT_ins(node, rs1, rs2, 8);
+            JAL_ins(node, 0);
+            index_1 = node.instructions.size() - 1;
+            new_mem_space(node, LHS->generate_str(), SW, rs2);
+        } else {
             LHS->generate_CFG(node);
             if (LHS->indexes.size()) {
-                int rs2 = node.latest_rd();
-                new_mem_space(node, LHS->generate_str() + "_addr");
-                SW_ins(node, node.latest_rd(), rs2);
+                new_mem_space(node, LHS->generate_str() + "_addr", SW, node.latest_rd());
             }
-//        }
+        }
         RHS->generate_CFG(node, new_reg("return_"));
         int RHS_rd = 0;
         if (RHS->atom_expr){
             if (RHS->atom_expr->atom_type == atom_AST::NUMBER) ADDI_ins(node, RHS->value());
             else if (RHS->indexes.size()) LW_ins(node, node.latest_rd(), new_reg(), 0);
             else {
-                new_mem_space(node, RHS->generate_str());
-                LW_ins(node, node.latest_rd(), new_reg());
+                if (val2mem.find(RHS->generate_str()) == val2mem.end()) log_error(("undefined variable " + RHS->generate_str()).c_str());
+                new_mem_space(node, RHS->generate_str(), LW, new_reg());
             }
             RHS_rd = node.latest_rd();
         } else RHS_rd = 10;
@@ -145,45 +140,34 @@ public:
             for (int i = 0; i < rvalue->indexes.size(); ++i) {
                 if (rvalue->indexes[i]->atom_expr->atom_type == atom_AST::NUMBER) {
                     array_size[lvalue->atom_expr->atom_name].push_back(rvalue->indexes[i]->value());
-                } else{
-                    array_size[lvalue->atom_expr->atom_name].push_back(-1);
-                }
-//                new_mem_space(node, lvalue->atom_expr->atom_name+"_size_"+to_string(i));
+                } else array_size[lvalue->atom_expr->atom_name].push_back(-1);
             }
             string tmp_name = lvalue->atom_expr->atom_name+"_size_"+to_string(rvalue->indexes.size());
             ADDI_ins(node, 4);
             int rs2 = node.latest_rd();
-            new_mem_space(node, tmp_name);
-            SW_ins(node, node.latest_rd(), rs2);
+            new_mem_space(node, tmp_name, SW, rs2);
             array_size[lvalue->atom_expr->atom_name].push_back(4);
             for (int i = rvalue->indexes.size() - 1; i >= 0; --i) {
                 if (array_size[lvalue->atom_expr->atom_name][i] != -1) {
                     array_size[lvalue->atom_expr->atom_name][i] *= array_size[lvalue->atom_expr->atom_name][i + 1];
                     ADDI_ins(node,array_size[lvalue->atom_expr->atom_name][i]);
                 } else {
-                    new_mem_space(node, rvalue->indexes[i]->atom_expr->atom_name);
-                    LW_ins(node, node.latest_rd(), new_reg());
+                    new_mem_space(node, rvalue->indexes[i]->atom_expr->atom_name, LW, new_reg());
                     rs2 = node.latest_rd();
                     if (i == rvalue->indexes.size() - 1) ADDI_ins(node, 4);
-                    else {
-                        new_mem_space(node, lvalue->atom_expr->atom_name+"_size_"+to_string(i + 1));
-                        LW_ins(node, node.latest_rd(), new_reg());
-                    }
+                    else new_mem_space(node, lvalue->atom_expr->atom_name+"_size_"+to_string(i + 1), LW, new_reg());
                     int rd = new_reg();
                     uint32_t code = (1 << 29) | (rs2 << 20) | (node.latest_rd() << 15) | (rd << 7) | 0b0110011;
                     node.instructions.push_back(instruction(code, TIMES_, rd, node.latest_rd(), rs2));
                 }
                 tmp_name = lvalue->atom_expr->atom_name+"_size_"+to_string(i);
-                rs2 = node.latest_rd();
-                new_mem_space(node, tmp_name);
-                SW_ins(node, node.latest_rd(), rs2);
+                new_mem_space(node, tmp_name, SW, node.latest_rd());
             }
             if (array_size[lvalue->atom_expr->atom_name][0] != -1) {
-                new_mem_space(node, lvalue->atom_expr->atom_name, array_size[lvalue->atom_expr->atom_name][0]);
+                new_mem_space(node, lvalue->atom_expr->atom_name, UNKNOWN, 0, array_size[lvalue->atom_expr->atom_name][0]);
             } else {
-                new_mem_space(node, lvalue->atom_expr->atom_name);
-                new_mem_space(node, lvalue->atom_expr->atom_name+"_size_0");
-                LW_ins(node, node.latest_rd(), new_reg("offset_"));
+                new_mem_space(node, lvalue->atom_expr->atom_name, UNKNOWN);
+                new_mem_space(node, lvalue->atom_expr->atom_name + "_size_0", LW, new_reg("offset_"));
                 offset_ = new_mem_space_;
             }
         } else {
@@ -193,18 +177,12 @@ public:
             if (rvalue->atom_expr) {
                 if (rvalue->atom_expr->atom_type == atom_AST::NUMBER) ADDI_ins(node, rvalue->value());
                 else if (rvalue->indexes.size()) LW_ins(node, 11, new_reg(), 0);
-                else {
-                    new_mem_space(node, rvalue->generate_str());
-                    LW_ins(node, node.latest_rd(), new_reg());
-                }
+                else new_mem_space(node, rvalue->generate_str(), LW, new_reg());
                 rs = node.latest_rd();
             } else rs = 11;
             if (lvalue->indexes.size()) {
                 SW_ins(node, 12, rs);
-            } else {
-                new_mem_space(node, lvalue->generate_str());
-                SW_ins(node, node.latest_rd(), rs);
-            }
+            } else new_mem_space(node, lvalue->generate_str(), SW, rs);
         }
     }
 };
@@ -223,10 +201,7 @@ public:
             if (identifiers[i]->indexes.size()){
                 identifiers[i]->cal_addr(node);
                 SW_ins(node, node.latest_rd(), rs, 0);
-            } else {
-                new_mem_space(node, identifiers[i]->generate_str());
-                SW_ins(node, node.latest_rd(), rs);
-            }
+            } else new_mem_space(node, identifiers[i]->generate_str(), SW, rs);
         }
     }
 };
@@ -242,10 +217,7 @@ public:
         if (exit_expr->atom_expr){
             if (exit_expr->atom_expr->atom_type == atom_AST::NUMBER) ADDI_ins(node, exit_expr->value(), "return_");
             else if (exit_expr->indexes.size()) LW_ins(node, node.latest_rd(), new_reg("return_"), 0);
-            else {
-                new_mem_space(node, exit_expr->generate_str());
-                LW_ins(node, node.latest_rd(), new_reg("return_"));
-            }
+            else new_mem_space(node, exit_expr->generate_str(), LW, new_reg("return_"));
         }
         node.instructions.push_back(instruction(0xff00513));
     }
@@ -295,10 +267,7 @@ public:
         if (if_expr->atom_expr){
             if (if_expr->atom_expr->atom_type == atom_AST::NUMBER) ADDI_ins(node, if_expr->value());
             else if (if_expr->indexes.size()) LW_ins(node, node.latest_rd(), new_reg(), 0);
-            else{
-                new_mem_space(node, if_expr->generate_str());
-                LW_ins(node, node.latest_rd(), new_reg());
-            }
+            else new_mem_space(node, if_expr->generate_str(), LW, new_reg());
             rs2 = node.latest_rd();
         } else rs2 = new_reg("gate_");
         ADDI_ins(node, 0);
@@ -397,6 +366,11 @@ void generate_CFG_(map<int, unique_ptr<stmt_AST>> stmts, int jump_){
         else if (i->second->exit_stmt) {
             (i++)->second->exit_stmt->generate_CFG(node);
             jump = -2;
+        }
+        else {
+            printf("REM\n");
+            jump = -1;
+            i ++;
         }
         if (i == stmts.end() && jump < 0) jump = jump_;
         node.jump = jump;

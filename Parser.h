@@ -27,10 +27,8 @@ unique_ptr<expr_AST> identifier_parse(){
 
 unique_ptr<expr_AST> paren_parse(){
     int tmp_token = cur_token;
-    //if (tmp_token == '[') printf("parse [\n");
     get_next_token();
     auto contents = expr_parse();
-    //if (cur_token == ']') printf("contents: %s\n", contents->generate_str().c_str());
     if (!contents) return nullptr;
     if (tmp_token == '(' && cur_token != ')') log_error("expected ')'");
     if (tmp_token == '[' && cur_token != ']') log_error("expected ']'");
@@ -48,6 +46,9 @@ unique_ptr<expr_AST> primary_parse(){
             break;
         case '(':
             return paren_parse();
+        case LET_: case INPUT_: case GOTO_: case FOR_: case IF_: case THEN_: case EXIT_: case END_: case REM_:
+            log_error("unexpected statement declaration");
+            break;
         default:
             return_ = nullptr;
     }
@@ -70,6 +71,7 @@ void binop_login(){
     binop_precedence[SUB] = 100;
     binop_precedence[DIVIDE] = 120;
     binop_precedence[TIMES] = 120;
+    binop_precedence[MOD] = 120;
 }
 
 int get_precedence(){
@@ -108,6 +110,7 @@ unique_ptr<let_AST> let_parse(){
     if (cur_token != '=') log_error("LET statement should be followed by an assignment");
     get_next_token(); //Eat '='.
     auto rexpr = expr_parse();
+    if (cur_token != line_ && cur_token != ';') log_error("2 assignments in LET statement");
     return make_unique<let_AST>(move(lval), move(rexpr), move(index));
 }
 
@@ -131,6 +134,9 @@ unique_ptr<goto_AST> goto_parse(){
 
 unique_ptr<exit_AST> exit_parse(){
     get_next_token(); //Eat EXIT.
+    if (cur_token != number_ && cur_token != identifier_ && cur_token != '('){
+        log_error("exit");
+    }
     return make_unique<exit_AST>(move(expr_parse()));
 }
 
@@ -139,7 +145,10 @@ unique_ptr<if_AST> if_parse(){
     get_next_token(); //Eat IF.
     auto if_expr = expr_parse();
     get_next_token(); //Eat THEN.
-    unique_ptr<expr_AST> if_goto(move(primary_parse()));
+    if (cur_token != number_) log_error("short circuit evaluation");
+    cout << number_token << endl;
+    unique_ptr<expr_AST> if_goto(move(number_parse()));
+    if (cur_token != line_) cout << cur_token << endl, cout << number_token << endl;
     return make_unique<if_AST>(move(if_expr), move(if_goto));
 }
 
@@ -153,6 +162,7 @@ unique_ptr<for_AST> for_parse(int for_line_){
     auto continue_gate = expr_parse();
     auto tmp_for = make_unique<for_AST>(move(it_stmt), move(continue_gate), for_line_);
     while (cur_token != END_) {
+        if (cur_token != line_) cout << cur_token << endl;
         line = primary_parse()->value();
         if (!line) log_error("Line number must be a constant integer");
         if (cur_token == END_) break;
@@ -171,6 +181,8 @@ unique_ptr<stmt_AST> rem_parse(){
 
 unique_ptr<stmt_AST> stmt_parse(int line__){
     switch (cur_token) {
+        case LET_:
+            return make_unique<stmt_AST>(let_parse());
         case INPUT_:
             return make_unique<stmt_AST>(input_parse());
         case GOTO_:
@@ -184,7 +196,8 @@ unique_ptr<stmt_AST> stmt_parse(int line__){
         case REM_:
             return rem_parse();
         default:
-            return make_unique<stmt_AST>(let_parse());
+            log_error("expected declaration of statement");
+            return nullptr;
     }
 }
 
@@ -200,9 +213,9 @@ program_AST main_parse(){
         if (cur_token == EOF_) return prog;
         else {
             auto st_ = stmt_parse(line__);
-            if (!st_->isrem()) prog.push(line__, move(st_));
+            prog.push(line__, move(st_));
         }
-        if (cur_token == ';') get_next_token();
+        if (cur_token != line_) printf("?\n");
     }
 }
 

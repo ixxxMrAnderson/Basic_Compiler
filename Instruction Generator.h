@@ -14,15 +14,15 @@
 using namespace std;
 
 enum OPCODE{
-    INPUT, LW, ADDI, XORI, SW, BEQ, BLT, LUI, JAL, ADD_, SUB_, TIMES_, DIVIDE_, SLT, OR_, AND_, UNKNOWN
+    INPUT, MALLOC, LW, ADDI, XORI, SW, BEQ, BLT, LUI, JAL, ADD_, SUB_, TIMES_, DIVIDE_, MOD_, SLT, OR_, AND_, UNKNOWN
 };
 
-const char opcode_str[17][10]{
-    "INPUT", "LW", "ADDI", "XORI", "SW", "BEQ", "BLT", "LUI", "JAL", "ADD_", "SUB_", "TIMES_", "DIVIDE_", "SLT", "OR_", "AND_", "UNKNOWN"
+const char opcode_str[19][10]{
+    "INPUT", "MALLOC", "LW", "ADDI", "XORI", "SW", "BEQ", "BLT", "LUI", "JAL", "ADD_", "SUB_", "TIMES_", "DIVIDE_", "MOD_", "SLT", "OR_", "AND_", "UNKNOWN"
 };
 
 enum BINOP{
-    ADD, SUB, TIMES,  DIVIDE, EQ, NOT_EQ, SMALLER, GREATER, SMALLER_EQ, GREATER_EQ, AND, OR
+    ADD, SUB, TIMES,  DIVIDE, MOD, EQ, NOT_EQ, SMALLER, GREATER, SMALLER_EQ, GREATER_EQ, AND, OR
 };
 
 enum TOKEN_TYPE{
@@ -31,8 +31,8 @@ enum TOKEN_TYPE{
     line_ = -14
 };
 
-const char binop_str[12][3]{
-    "+", "-", "*", "/", "==", "!=", "<", ">", "<=", ">=", "&&","||"
+const char binop_str[13][3]{
+    "+", "-", "*", "/", "%", "==", "!=", "<", ">", "<=", ">=", "&&","||"
 };
 
 map<string, int> for_lines;
@@ -83,9 +83,7 @@ void print_dump(){
 
 //-------------------------------------------------------------------------------------
 
-int offset_ = 0;
-int new_reg_ = 0, new_mem_space_ = 0x4000;
-void ADDI_ins(CFG_node &node, int imm, string rd = "", int rs1 = 0, int rd__ = 0);
+int new_reg_ = 0;
 int new_reg(string val = ""){
     if (val == "return_") return 10; // return
     if (val == "addr_1") return 11; // tmp_addr_1
@@ -97,22 +95,6 @@ int new_reg(string val = ""){
     reg2val[reg] = val;
     return reg;
 }
-void new_mem_space(CFG_node &node, string val, int new_space = 4, string rd = ""){
-    if (val2mem.find(val) == val2mem.end()){
-        int mem = new_mem_space_;
-        new_mem_space_ += new_space;
-        val2mem[val] = mem, mem2val[mem] = val;
-        ADDI_ins(node, mem, rd);
-    } else {
-        ADDI_ins(node, val2mem[val], rd);
-        if (offset_ > val2mem[val]) return;
-    }
-    if (offset_) {
-        int rd_ = new_reg(rd);
-        uint32_t code = (31 << 20) | (node.latest_rd() << 15) | ((rd_ & 0b11111) << 7) | 0b0110011;
-        node.instructions.push_back(instruction(code, ADD_, rd_, node.latest_rd(), 31));
-    }
-}
 bool isdigit_(string x){
     if (!isdigit(x[0]) && x[0] != '-') return 0;
     for (int i = 1; i < strlen(x.c_str()); ++i){
@@ -121,7 +103,7 @@ bool isdigit_(string x){
     return 1;
 }
 void log_error(const char *text_){
-    printf("error: %s\n", text_);
+    printf("FAIL: %s\n", text_);
     exit(0);
 }
 
@@ -147,7 +129,7 @@ void BLT_ins(CFG_node &node, int rs1, int rs2, int imm = 0){
     node.instructions.push_back(instruction(code, BLT, 0, rs1, rs2, imm));
 }
 
-void ADDI_ins(CFG_node &node, int imm, string rd, int rs1, int rd__){
+void ADDI_ins(CFG_node &node, int imm, string rd = "", int rs1 = 0, int rd__ = 0){
     int rd_ = 0;
     if (rd__) rd_ = rd__;
     else rd_ = new_reg(rd);
@@ -177,6 +159,34 @@ void JAL_ins(CFG_node &node, int jump){
     node.instructions.push_back(instruction(code, JAL, 0, 0, 0, jump));
 }
 
+int offset_ = 0, new_mem_space_ = 0x4000;
+void new_mem_space(CFG_node &node, string val, OPCODE opcode, int rs = 0, int new_space = 4){
+    int mem = 0, tmp_rd = rs;
+    if (opcode != ADDI) tmp_rd = new_reg();
+    if (val2mem.find(val) == val2mem.end()){
+        mem = new_mem_space_;
+        new_mem_space_ += new_space;
+        val2mem[val] = mem, mem2val[mem] = val;
+        if (opcode == UNKNOWN) return;
+        ADDI_ins(node, (mem >> 12) << 12, "", 0, tmp_rd);
+    } else {
+        if (opcode == UNKNOWN) return;
+        mem = val2mem[val];
+        ADDI_ins(node, (mem >> 12) << 12, "", 0, tmp_rd);
+    }
+    if (offset_ <= mem && offset_) {
+        uint32_t code = (31 << 20) | (tmp_rd << 15) | (tmp_rd << 7) | 0b0110011;
+        node.instructions.push_back(instruction(code, ADD_, tmp_rd, tmp_rd, 31));
+    }
+    if (opcode == ADDI) {
+        ADDI_ins(node, mem - ((mem >> 12) << 12));
+        uint32_t code = (node.latest_rd() << 20) | (tmp_rd << 15) | (tmp_rd << 7) | 0b0110011;
+        node.instructions.push_back(instruction(code, ADD_, tmp_rd, tmp_rd, node.latest_rd()));
+    } else if (opcode == LW) {
+        LW_ins(node, node.latest_rd(), rs, mem - ((mem >> 12) << 12));
+    } else SW_ins(node, node.latest_rd(), rs, mem - ((mem >> 12) << 12));
+}
+
 void binop_ins(CFG_node &node, BINOP binop, string LHS, string RHS, int RHS_rd, int index_1_, int default_rd = 0, int LHS_addr = 0){
     uint32_t code = 0;
     int index_2 = 0;
@@ -184,12 +194,11 @@ void binop_ins(CFG_node &node, BINOP binop, string LHS, string RHS, int RHS_rd, 
         ADDI_ins(node, strtod(LHS.c_str(), 0));
     } else {
         if (LHS_addr){
-            new_mem_space(node, LHS + "_addr");
-            LW_ins(node, node.latest_rd(), new_reg());
+            new_mem_space(node, LHS + "_addr", LW, new_reg());
             LW_ins(node, node.latest_rd(), new_reg());
         } else {
-            new_mem_space(node, LHS);
-            LW_ins(node, node.latest_rd(), new_reg());
+            if (val2mem.find(LHS) == val2mem.end()) log_error(("undefined variable " + LHS).c_str());
+            new_mem_space(node, LHS, LW, new_reg());
         }
     }
     int rs1 = node.latest_rd(), rs2 = RHS_rd, rd = 0, rd1 = 0, rd2 = 0, imm = 0;
@@ -217,6 +226,12 @@ void binop_ins(CFG_node &node, BINOP binop, string LHS, string RHS, int RHS_rd, 
             else rd = default_rd;
             code = (1 << 28) | (rs2 << 20) | (rs1 << 15) | (rd << 7) | 0b0110011;
             node.instructions.push_back(instruction(code, DIVIDE_, rd, rs1, rs2));
+            break;
+        case MOD:
+            if (!default_rd) rd = new_reg("(" + LHS + "%" + RHS + ")");
+            else rd = default_rd;
+            code = (1 << 27) | (rs2 << 20) | (rs1 << 15) | (rd << 7) | 0b0110011;
+            node.instructions.push_back(instruction(code, MOD_, rd, rs1, rs2));
             break;
         case EQ:
             if (!default_rd) rd = new_reg("(" + LHS + "==" + RHS + ")");
@@ -283,19 +298,18 @@ void binop_ins(CFG_node &node, BINOP binop, string LHS, string RHS, int RHS_rd, 
             node.instructions.push_back(instruction(code, XORI, rd, rd, 0, 1));
             break;
     }
-//    if (binop == AND || binop == OR){
-//        JAL_ins(node, 8);
-//        index_2 = node.instructions.size() - 1;
-//        if (binop == AND) ADDI_ins(node, 0, "", 0, rd);
-//        else ADDI_ins(node, 1, "", 0, rd);
-//        int jump = (index_2 - index_1_) * 4 + 4;
-//        uint32_t code = ((jump & 0x7fe) << 20) | (((jump >> 20) & 1) << 31) | (((jump >> 11) & 1) << 20) |
-//                        (((jump >> 12) & 0xff) << 12) | 0b1101111;
-//        node.instructions[index_1_] = instruction(code, JAL, 0, 0, 0, jump);
-//    }
+    if (binop == AND || binop == OR){
+        JAL_ins(node, 8);
+        index_2 = node.instructions.size() - 1;
+        if (binop == AND) ADDI_ins(node, 0, "", 0, rd);
+        else ADDI_ins(node, 1, "", 0, rd);
+        int jump = (index_2 - index_1_) * 4 + 4;
+        uint32_t code = ((jump & 0x7fe) << 20) | (((jump >> 20) & 1) << 31) | (((jump >> 11) & 1) << 20) |
+                        (((jump >> 12) & 0xff) << 12) | 0b1101111;
+        node.instructions[index_1_] = instruction(code, JAL, 0, 0, 0, jump);
+    }
     if (default_rd) return;
-    new_mem_space(node, reg2val[rd]);
-    SW_ins(node, node.latest_rd(), rd);
+    new_mem_space(node, reg2val[rd], SW, rd);
 }
 
 int passed_ = 0;
@@ -330,7 +344,7 @@ void generate_code(){
             printf("\n\n");
         }
     }
-    printf("\n\nmemory_space_used_%08X(byte)\n", passed_);
+    printf("13 05 F0 0F\n\nmemory_space_used_%08X(byte)\n", passed_);
 }
 
 #endif //BASIC_COMPLIER_INSTRUCTION_GENERATOR_H
