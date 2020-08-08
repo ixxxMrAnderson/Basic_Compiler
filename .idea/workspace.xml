@@ -15,7 +15,6 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AST.h" beforeDir="false" afterPath="$PROJECT_DIR$/AST.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Instruction Generator.h" beforeDir="false" afterPath="$PROJECT_DIR$/Instruction Generator.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Lexer.h" beforeDir="false" afterPath="$PROJECT_DIR$/Lexer.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Parser.h" beforeDir="false" afterPath="$PROJECT_DIR$/Parser.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/Basic_Compiler.exe" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/Basic_Compiler.exe" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
@@ -86,7 +85,7 @@
       <workItem from="1596672656537" duration="11415000" />
       <workItem from="1596763845865" duration="22604000" />
       <workItem from="1596791551456" duration="6367000" />
-      <workItem from="1596849211773" duration="19146000" />
+      <workItem from="1596849211773" duration="23692000" />
     </task>
     <servers />
   </component>
@@ -102,22 +101,22 @@
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state x="413" y="62" key="FileChooserDialogImpl/0.0.1366.728@0.0.1366.728" timestamp="1596765634729" />
-    <state width="1296" height="103" key="GridCell.Tab.0.bottom" timestamp="1596876533233">
+    <state width="1296" height="296" key="GridCell.Tab.0.bottom" timestamp="1596888453694">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1296" height="103" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1596876533233" />
-    <state width="1296" height="103" key="GridCell.Tab.0.center" timestamp="1596876533233">
+    <state width="1296" height="296" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1596888453694" />
+    <state width="1296" height="296" key="GridCell.Tab.0.center" timestamp="1596888453694">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1296" height="103" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1596876533233" />
-    <state width="1296" height="103" key="GridCell.Tab.0.left" timestamp="1596876533233">
+    <state width="1296" height="296" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1596888453694" />
+    <state width="1296" height="296" key="GridCell.Tab.0.left" timestamp="1596888453693">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1296" height="103" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1596876533233" />
-    <state width="1296" height="103" key="GridCell.Tab.0.right" timestamp="1596876533233">
+    <state width="1296" height="296" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1596888453693" />
+    <state width="1296" height="296" key="GridCell.Tab.0.right" timestamp="1596888453694">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1296" height="103" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1596876533233" />
+    <state width="1296" height="296" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1596888453694" />
     <state x="300" y="147" key="com.intellij.ide.util.TipDialog" timestamp="1596416320719">
       <screen x="0" y="0" width="1366" height="728" />
     </state>

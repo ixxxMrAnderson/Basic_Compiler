@@ -60,11 +60,18 @@ public:
     }
     void push(unique_ptr<expr_AST> index_){indexes.push_back(move(index_));}
     void cal_addr(CFG_node &node, string rd_ = "addr_1"){
-        if (val2mem.find(atom_expr->atom_name+"_size_0") == val2mem.end()) log_error("calling operator []");
-        new_mem_space(node, this->atom_expr->atom_name, ADDI, new_reg(rd_), 4);
+        if (val2mem.find(atom_expr->atom_name+"_size_0") == val2mem.end()) log_error("while calling operator []");
+        if (malloc_map.find(atom_expr->atom_name) != malloc_map.end()){
+            ADDI_ins(node, 0, rd_, new_reg(to_string(malloc_map[atom_expr->atom_name])));
+        } else {
+            ADDI_ins(node, val2mem[this->atom_expr->atom_name], rd_);
+        }
         for (int i = 0; i < indexes.size(); ++i) {
             if (indexes[i]->atom_expr) {
                 if (indexes[i]->atom_expr->atom_type == atom_AST::NUMBER) {
+                    if (indexes[i]->value() >= (array_size[atom_expr->atom_name][i] / array_size[atom_expr->atom_name][i + 1])){
+                        log_error("while calling operator []");
+                    }
                     ADDI_ins(node, indexes[i]->value());
                 } else new_mem_space(node, indexes[i]->generate_str(), LW, new_reg());
             } else indexes[i]->generate_CFG(node, new_reg());
@@ -166,9 +173,9 @@ public:
             if (array_size[lvalue->atom_expr->atom_name][0] != -1) {
                 new_mem_space(node, lvalue->atom_expr->atom_name, UNKNOWN, 0, array_size[lvalue->atom_expr->atom_name][0]);
             } else {
-                new_mem_space(node, lvalue->atom_expr->atom_name, UNKNOWN);
-                new_mem_space(node, lvalue->atom_expr->atom_name + "_size_0", LW, new_reg("offset_"));
-                offset_ = new_mem_space_;
+                new_mem_space(node, lvalue->atom_expr->atom_name + "_size_0", ADDI, new_reg());
+                malloc_map[lvalue->generate_str()] = malloc_cnt;
+                MALLOC_ins(node, node.latest_rd(), new_reg(to_string(malloc_cnt++)));
             }
         } else {
             rvalue->generate_CFG(node, 11);
@@ -336,7 +343,6 @@ void generate_CFG_(map<int, unique_ptr<stmt_AST>> stmts, int jump_){
     while(i != stmts.end()){
         CFG_node node;
         if (for_store){
-            ADDI_ins(node, 0, "offset_"); // offset = 0
             for (auto j = for_lines.begin(); j != for_lines.end(); ++j){
                 ADDI_ins(node, 1, j->first);
             }
@@ -368,7 +374,6 @@ void generate_CFG_(map<int, unique_ptr<stmt_AST>> stmts, int jump_){
             jump = -2;
         }
         else {
-            printf("REM\n");
             jump = -1;
             i ++;
         }

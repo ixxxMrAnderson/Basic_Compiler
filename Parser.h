@@ -215,7 +215,6 @@ program_AST main_parse(){
             auto st_ = stmt_parse(line__);
             prog.push(line__, move(st_));
         }
-        if (cur_token != line_) printf("?\n");
     }
 }
 

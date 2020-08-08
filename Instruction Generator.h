@@ -37,6 +37,7 @@ const char binop_str[13][3]{
 
 map<string, int> for_lines;
 map<string, vector<int>> array_size;
+map<string, int> malloc_map;
 map<int, string> reg2val;
 map<string, int> val2mem;
 map<int, string> mem2val;
@@ -83,18 +84,7 @@ void print_dump(){
 
 //-------------------------------------------------------------------------------------
 
-int new_reg_ = 0;
-int new_reg(string val = ""){
-    if (val == "return_") return 10; // return
-    if (val == "addr_1") return 11; // tmp_addr_1
-    if (val == "addr_2") return 12; // tmp_addr_2
-    if (val == "gate_") return 13; // tmp_store for if/for gate
-    if (val == "offset_") return 31; // offset
-    if (for_lines.find(val) != for_lines.end()) return for_lines[val];
-    int reg = (new_reg_++) % 17 + 14;
-    reg2val[reg] = val;
-    return reg;
-}
+int new_reg_ = 0, malloc_cnt = 1;
 bool isdigit_(string x){
     if (!isdigit(x[0]) && x[0] != '-') return 0;
     for (int i = 1; i < strlen(x.c_str()); ++i){
@@ -102,9 +92,20 @@ bool isdigit_(string x){
     }
     return 1;
 }
+int new_reg(string val = ""){
+    if (val == "return_") return 10; // return
+    if (val == "addr_1") return 11; // tmp_addr_1
+    if (val == "addr_2") return 12; // tmp_addr_2
+    if (val == "gate_") return 13; // tmp_store for if/for gate
+    if (isdigit_(val)) return strtod(val.c_str(), 0) + 13;
+    if (for_lines.find(val) != for_lines.end()) return for_lines[val];
+    int reg = (new_reg_++) % 11 + 21;
+    reg2val[reg] = val;
+    return reg;
+}
 void log_error(const char *text_){
     printf("FAIL: %s\n", text_);
-    exit(0);
+    exit(-1073741819);
 }
 
 void LW_ins(CFG_node &node, int rs, int rd, int imm = 0){
@@ -115,6 +116,11 @@ void LW_ins(CFG_node &node, int rs, int rd, int imm = 0){
 void SW_ins(CFG_node &node, int rs1, int rs2, int imm = 0){
     uint32_t code = ((imm & 0b11111) << 7) | (((imm >> 5) & 0x7f) << 25) | (rs2 << 20) | (rs1 << 15) | (1 << 13) | 0b0100011;
     node.instructions.push_back(instruction(code, SW, 0, rs1, rs2, imm));
+}
+
+void MALLOC_ins(CFG_node &node, int rs, int rd, int imm = 0){
+    uint32_t code = (imm << 20) | (rs << 15) | (rd << 7) | (1 << 13);
+    node.instructions.push_back(instruction(code, MALLOC, rd, rs, 0, imm));
 }
 
 void BEQ_ins(CFG_node &node, int rs1, int rs2, int imm = 0){
@@ -159,10 +165,9 @@ void JAL_ins(CFG_node &node, int jump){
     node.instructions.push_back(instruction(code, JAL, 0, 0, 0, jump));
 }
 
-int offset_ = 0, new_mem_space_ = 0x4000;
+int new_mem_space_ = 0x10000;
 void new_mem_space(CFG_node &node, string val, OPCODE opcode, int rs = 0, int new_space = 4){
-    int mem = 0, tmp_rd = rs;
-    if (opcode != ADDI) tmp_rd = new_reg();
+    int mem = 0, tmp_rd = new_reg();
     if (val2mem.find(val) == val2mem.end()){
         mem = new_mem_space_;
         new_mem_space_ += new_space;
@@ -174,15 +179,7 @@ void new_mem_space(CFG_node &node, string val, OPCODE opcode, int rs = 0, int ne
         mem = val2mem[val];
         ADDI_ins(node, (mem >> 12) << 12, "", 0, tmp_rd);
     }
-    if (offset_ <= mem && offset_) {
-        uint32_t code = (31 << 20) | (tmp_rd << 15) | (tmp_rd << 7) | 0b0110011;
-        node.instructions.push_back(instruction(code, ADD_, tmp_rd, tmp_rd, 31));
-    }
-    if (opcode == ADDI) {
-        ADDI_ins(node, mem - ((mem >> 12) << 12));
-        uint32_t code = (node.latest_rd() << 20) | (tmp_rd << 15) | (tmp_rd << 7) | 0b0110011;
-        node.instructions.push_back(instruction(code, ADD_, tmp_rd, tmp_rd, node.latest_rd()));
-    } else if (opcode == LW) {
+    if (opcode == LW) {
         LW_ins(node, node.latest_rd(), rs, mem - ((mem >> 12) << 12));
     } else SW_ins(node, node.latest_rd(), rs, mem - ((mem >> 12) << 12));
 }
