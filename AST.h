@@ -1,12 +1,7 @@
-//
-// Created by 储浩天 on 2020/7/16.
-//
-
 #ifndef BASIC_COMPILER_AST_H
 #define BASIC_COMPILER_AST_H
 
 #include "Instruction Generator.h"
-
 class atom_AST{
 public:
     enum ATOM_TYPE{
@@ -52,7 +47,7 @@ public:
         return return_;
     }
     expr_AST(BINOP op, unique_ptr<expr_AST> LHS_, unique_ptr<expr_AST> RHS_)
-                : binop(op), LHS(move(LHS_)), RHS(move(RHS_)){}
+            : binop(op), LHS(move(LHS_)), RHS(move(RHS_)){}
     expr_AST(unique_ptr<atom_AST> atom_expr_): atom_expr(move(atom_expr_)){}
     int value(){
         if (!atom_expr) return 0;
@@ -62,17 +57,19 @@ public:
     void cal_addr(CFG_node &node, string rd_ = "addr_1"){
         if (val2mem.find(atom_expr->atom_name+"_size_0") == val2mem.end()) log_error("while calling operator []");
         if (malloc_map.find(atom_expr->atom_name) != malloc_map.end()){
-            ADDI_ins(node, 0, rd_, new_reg(to_string(malloc_map[atom_expr->atom_name])));
+            int rs = new_reg(to_string(malloc_map[atom_expr->atom_name])), rd = new_reg(rd_);
+            uint32_t code = (rs << 15) | (rd << 7) | 0b0010011;
+            node.instructions.push_back(instruction(code, ADDI, rd, rs));
         } else {
-            ADDI_ins(node, val2mem[this->atom_expr->atom_name], rd_);
+            load_imm(node, val2mem[this->atom_expr->atom_name], rd_);
         }
         for (int i = 0; i < indexes.size(); ++i) {
             if (indexes[i]->atom_expr) {
                 if (indexes[i]->atom_expr->atom_type == atom_AST::NUMBER) {
-                    if (indexes[i]->value() >= (array_size[atom_expr->atom_name][i] / array_size[atom_expr->atom_name][i + 1])){
+                    if (array_size[atom_expr->atom_name][i] != -1 && indexes[i]->value() >= (array_size[atom_expr->atom_name][i] / array_size[atom_expr->atom_name][i + 1])){
                         log_error("while calling operator []");
                     }
-                    ADDI_ins(node, indexes[i]->value());
+                    load_imm(node, indexes[i]->value());
                 } else new_mem_space(node, indexes[i]->generate_str(), LW, new_reg());
             } else indexes[i]->generate_CFG(node, new_reg());
             int rs1 = node.latest_rd();
@@ -95,7 +92,7 @@ public:
         if (binop == AND || binop == OR){
             LHS->generate_CFG(node, new_reg());
             if (LHS->atom_expr){
-                if (LHS->atom_expr->atom_type == atom_AST::NUMBER) ADDI_ins(node, LHS->value());
+                if (LHS->atom_expr->atom_type == atom_AST::NUMBER) load_imm(node, LHS->value());
                 else if (LHS->indexes.size()) {
                     int last_rd = node.latest_rd();
                     new_mem_space(node, LHS->generate_str() + "_addr", SW, last_rd);
@@ -105,14 +102,14 @@ public:
                     new_mem_space(node, LHS->generate_str(), LW, new_reg());
                 }
             }
-            int rs2 = node.latest_rd();
-            ADDI_ins(node, 0);
             int rs1 = node.latest_rd();
+            load_imm(node, 0);
+            int rs2 = node.latest_rd();
             if (binop == OR) BEQ_ins(node, rs1, rs2, 8);
-            else BLT_ins(node, rs1, rs2, 8);
+            else BNE_ins(node, rs1, rs2, 8);
             JAL_ins(node, 0);
             index_1 = node.instructions.size() - 1;
-            new_mem_space(node, LHS->generate_str(), SW, rs2);
+            new_mem_space(node, LHS->generate_str(), SW, rs1);
         } else {
             LHS->generate_CFG(node);
             if (LHS->indexes.size()) {
@@ -122,7 +119,7 @@ public:
         RHS->generate_CFG(node, new_reg("return_"));
         int RHS_rd = 0;
         if (RHS->atom_expr){
-            if (RHS->atom_expr->atom_type == atom_AST::NUMBER) ADDI_ins(node, RHS->value());
+            if (RHS->atom_expr->atom_type == atom_AST::NUMBER) load_imm(node, RHS->value());
             else if (RHS->indexes.size()) LW_ins(node, node.latest_rd(), new_reg(), 0);
             else {
                 if (val2mem.find(RHS->generate_str()) == val2mem.end()) log_error(("undefined variable " + RHS->generate_str()).c_str());
@@ -150,18 +147,18 @@ public:
                 } else array_size[lvalue->atom_expr->atom_name].push_back(-1);
             }
             string tmp_name = lvalue->atom_expr->atom_name+"_size_"+to_string(rvalue->indexes.size());
-            ADDI_ins(node, 4);
+            load_imm(node, 4);
             int rs2 = node.latest_rd();
             new_mem_space(node, tmp_name, SW, rs2);
             array_size[lvalue->atom_expr->atom_name].push_back(4);
             for (int i = rvalue->indexes.size() - 1; i >= 0; --i) {
                 if (array_size[lvalue->atom_expr->atom_name][i] != -1) {
                     array_size[lvalue->atom_expr->atom_name][i] *= array_size[lvalue->atom_expr->atom_name][i + 1];
-                    ADDI_ins(node,array_size[lvalue->atom_expr->atom_name][i]);
+                    load_imm(node,array_size[lvalue->atom_expr->atom_name][i]);
                 } else {
                     new_mem_space(node, rvalue->indexes[i]->atom_expr->atom_name, LW, new_reg());
                     rs2 = node.latest_rd();
-                    if (i == rvalue->indexes.size() - 1) ADDI_ins(node, 4);
+                    if (i == rvalue->indexes.size() - 1) load_imm(node, 4);
                     else new_mem_space(node, lvalue->atom_expr->atom_name+"_size_"+to_string(i + 1), LW, new_reg());
                     int rd = new_reg();
                     uint32_t code = (1 << 29) | (rs2 << 20) | (node.latest_rd() << 15) | (rd << 7) | 0b0110011;
@@ -173,7 +170,7 @@ public:
             if (array_size[lvalue->atom_expr->atom_name][0] != -1) {
                 new_mem_space(node, lvalue->atom_expr->atom_name, UNKNOWN, 0, array_size[lvalue->atom_expr->atom_name][0]);
             } else {
-                new_mem_space(node, lvalue->atom_expr->atom_name + "_size_0", ADDI, new_reg());
+                load_imm(node, val2mem[lvalue->atom_expr->atom_name + "_size_0"]);
                 malloc_map[lvalue->generate_str()] = malloc_cnt;
                 MALLOC_ins(node, node.latest_rd(), new_reg(to_string(malloc_cnt++)));
             }
@@ -182,7 +179,7 @@ public:
             if (lvalue->indexes.size()) lvalue->cal_addr(node, "addr_2");
             int rs = 0;
             if (rvalue->atom_expr) {
-                if (rvalue->atom_expr->atom_type == atom_AST::NUMBER) ADDI_ins(node, rvalue->value());
+                if (rvalue->atom_expr->atom_type == atom_AST::NUMBER) load_imm(node, rvalue->value());
                 else if (rvalue->indexes.size()) LW_ins(node, 11, new_reg(), 0);
                 else new_mem_space(node, rvalue->generate_str(), LW, new_reg());
                 rs = node.latest_rd();
@@ -222,7 +219,7 @@ public:
     void generate_CFG(CFG_node &node){
         exit_expr->generate_CFG(node, new_reg("return_"));
         if (exit_expr->atom_expr){
-            if (exit_expr->atom_expr->atom_type == atom_AST::NUMBER) ADDI_ins(node, exit_expr->value(), "return_");
+            if (exit_expr->atom_expr->atom_type == atom_AST::NUMBER) load_imm(node, exit_expr->value(), "return_");
             else if (exit_expr->indexes.size()) LW_ins(node, node.latest_rd(), new_reg("return_"), 0);
             else new_mem_space(node, exit_expr->generate_str(), LW, new_reg("return_"));
         }
@@ -247,18 +244,16 @@ public:
     unique_ptr<goto_AST> goto_stmt;
     unique_ptr<if_AST> if_stmt;
     unique_ptr<for_AST> for_stmt;
-    bool isrem_ = 1;
     stmt_AST(){}
     stmt_AST(unique_ptr<stmt_AST> other)
-: if_stmt(move(other->if_stmt)), for_stmt(move(other->for_stmt)), goto_stmt(move(other->goto_stmt))
-, exit_stmt(move(other->exit_stmt)), input_stmt(move(other->input_stmt)), let_stmt(move(other->let_stmt)){isrem_ = other->isrem_;}
-    stmt_AST(unique_ptr<let_AST> stmt_): let_stmt(move(stmt_)){isrem_ = 0;}
-    stmt_AST(unique_ptr<input_AST> stmt_): input_stmt(move(stmt_)){isrem_ = 0;}
-    stmt_AST(unique_ptr<exit_AST> stmt_): exit_stmt(move(stmt_)){isrem_ = 0;}
-    stmt_AST(unique_ptr<goto_AST> stmt_): goto_stmt(move(stmt_)){isrem_ = 0;}
+            : if_stmt(move(other->if_stmt)), for_stmt(move(other->for_stmt)), goto_stmt(move(other->goto_stmt))
+            , exit_stmt(move(other->exit_stmt)), input_stmt(move(other->input_stmt)), let_stmt(move(other->let_stmt)){}
+    stmt_AST(unique_ptr<let_AST> stmt_): let_stmt(move(stmt_)){}
+    stmt_AST(unique_ptr<input_AST> stmt_): input_stmt(move(stmt_)){}
+    stmt_AST(unique_ptr<exit_AST> stmt_): exit_stmt(move(stmt_)){}
+    stmt_AST(unique_ptr<goto_AST> stmt_): goto_stmt(move(stmt_)){}
     stmt_AST(unique_ptr<if_AST> stmt_);
     stmt_AST(unique_ptr<for_AST> stmt_);
-    bool isrem(){return isrem_;}
 };
 
 class if_AST{
@@ -272,14 +267,12 @@ public:
         if_expr->generate_CFG(node, new_reg("gate_"));
         int rs2 = 0;
         if (if_expr->atom_expr){
-            if (if_expr->atom_expr->atom_type == atom_AST::NUMBER) ADDI_ins(node, if_expr->value());
+            if (if_expr->atom_expr->atom_type == atom_AST::NUMBER) load_imm(node, if_expr->value());
             else if (if_expr->indexes.size()) LW_ins(node, node.latest_rd(), new_reg(), 0);
             else new_mem_space(node, if_expr->generate_str(), LW, new_reg());
             rs2 = node.latest_rd();
         } else rs2 = new_reg("gate_");
-        ADDI_ins(node, 0);
-        int rs1 = node.latest_rd();
-        BEQ_ins(node, rs1, rs2, 8);
+        BEQ_ins(node, rs2, 0, 8);
         JAL_ins(node, if_goto->value());
     }
 };
@@ -298,9 +291,7 @@ public:
     void generate_CFG(){
         CFG_node node(after_end_for);
         int rs2 = for_lines["FOR_" + to_string(for_line)];
-        ADDI_ins(node, 0);
-        int rs1 = node.latest_rd();
-        BEQ_ins(node, rs1, rs2, 8);
+        BEQ_ins(node, rs2, 0, 8);
         JAL_ins(node, 0);
         int size_1 = node.instructions.size();
         it_stmt->let_stmt->generate_CFG(node);
@@ -310,11 +301,9 @@ public:
         node.instructions[size_1 - 1] = instruction(code, JAL, 0, 0, 0, jump);
         continue_gate->generate_CFG(node, new_reg("gate_"));
         rs2 = node.latest_rd();
-        ADDI_ins(node, 0, "FOR_" + to_string(for_line));
-        ADDI_ins(node, 0);
-        rs1 = node.latest_rd();
-        BLT_ins(node, rs1, rs2, 12);
-        ADDI_ins(node, 1, "FOR_" + to_string(for_line));
+        load_imm(node, 0, "FOR_" + to_string(for_line));
+        BNE_ins(node, rs2, 0, 12);
+        load_imm(node, 1, "FOR_" + to_string(for_line));
         JAL_ins(node, after_end_for);
         CFG[for_line] = node;
         generate_CFG_(move(stmts), -1);
@@ -325,9 +314,9 @@ public:
 };
 
 stmt_AST::stmt_AST(unique_ptr<if_AST> stmt_)
-            : if_stmt(move(stmt_)){isrem_ = 0;}
+        : if_stmt(move(stmt_)){}
 stmt_AST::stmt_AST(unique_ptr<for_AST> stmt_)
-            : for_stmt(move(stmt_)){isrem_ = 0;}
+        : for_stmt(move(stmt_)){}
 
 class program_AST{
     map<int, unique_ptr<stmt_AST>> stmts;
@@ -344,7 +333,7 @@ void generate_CFG_(map<int, unique_ptr<stmt_AST>> stmts, int jump_){
         CFG_node node;
         if (for_store){
             for (auto j = for_lines.begin(); j != for_lines.end(); ++j){
-                ADDI_ins(node, 1, j->first);
+                load_imm(node, 1, j->first);
             }
             for_store = 0;
         }

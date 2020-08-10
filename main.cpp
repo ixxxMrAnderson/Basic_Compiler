@@ -2,17 +2,17 @@
 #include "Parser.h"
 
 int main() {
-    freopen("D:\\ClionProjects\\Basic Compiler\\testcases\\sema\\sema_6.txt", "r", stdin);
+    freopen("D:\\ClionProjects\\Basic Compiler\\testcases\\control_test\\control_1.txt", "r", stdin);
     binop_login();
     auto prog = main_parse();
     freopen("CON", "r", stdin);
     prog.generate_CFG();
-    printf("-----------------------------------------------\n");
-    print_dump();
-    printf("-----------------------------------------------\n");
+//    printf("-----------------------------------------------\n");
+//    print_dump();
+//    printf("-----------------------------------------------\n");
     generate_code();
-    printf("-----------------------------------------------\nval2mem_\n");
-    for (auto i = val2mem.begin(); i != val2mem.end(); ++i){
-        printf("%s___%d\n", i->first.c_str(), i->second);
-    }
+//    printf("-----------------------------------------------\nval2mem_\n");
+//    for (auto i = val2mem.begin(); i != val2mem.end(); ++i){
+//        printf("%s___%d\n", i->first.c_str(), i->second);
+//    }
 }

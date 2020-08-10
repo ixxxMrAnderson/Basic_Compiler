@@ -1,7 +1,3 @@
-//
-// Created by 储浩天 on 2020/7/16.
-//
-
 #ifndef BASIC_COMPILER_PARSER_H
 #define BASIC_COMPILER_PARSER_H
 
@@ -146,7 +142,6 @@ unique_ptr<if_AST> if_parse(){
     auto if_expr = expr_parse();
     get_next_token(); //Eat THEN.
     if (cur_token != number_) log_error("short circuit evaluation");
-    cout << number_token << endl;
     unique_ptr<expr_AST> if_goto(move(number_parse()));
     if (cur_token != line_) cout << cur_token << endl, cout << number_token << endl;
     return make_unique<if_AST>(move(if_expr), move(if_goto));

@@ -17,7 +17,10 @@
       <change beforePath="$PROJECT_DIR$/Instruction Generator.h" beforeDir="false" afterPath="$PROJECT_DIR$/Instruction Generator.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Parser.h" beforeDir="false" afterPath="$PROJECT_DIR$/Parser.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/Basic_Compiler.exe" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/Basic_Compiler.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/main.cpp.obj" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/main.cpp.obj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/objects.a" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/objects.a" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testcases/sema/sema_13.txt" beforeDir="false" afterPath="$PROJECT_DIR$/testcases/sema/sema_13.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,7 +46,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../RISCV" />
   </component>
   <component name="RunManager">
     <configuration name="Basic_Compiler" type="CMakeRunConfiguration" factoryName="Application" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Basic_Compiler" TARGET_NAME="Basic_Compiler" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="Basic_Compiler" RUN_TARGET_NAME="Basic_Compiler">
@@ -86,6 +89,8 @@
       <workItem from="1596763845865" duration="22604000" />
       <workItem from="1596791551456" duration="6367000" />
       <workItem from="1596849211773" duration="23692000" />
+      <workItem from="1596936400998" duration="8302000" />
+      <workItem from="1597021285495" duration="7734000" />
     </task>
     <servers />
   </component>
@@ -97,30 +102,30 @@
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state x="349" y="150" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1366.728@0.0.1366.728" timestamp="1596791579506" />
-    <state x="413" y="62" key="FileChooserDialogImpl" timestamp="1596765634729">
+    <state x="413" y="62" key="FileChooserDialogImpl" timestamp="1597022172396">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="413" y="62" key="FileChooserDialogImpl/0.0.1366.728@0.0.1366.728" timestamp="1596765634729" />
-    <state width="1296" height="296" key="GridCell.Tab.0.bottom" timestamp="1596888453694">
+    <state x="413" y="62" key="FileChooserDialogImpl/0.0.1366.728@0.0.1366.728" timestamp="1597022172396" />
+    <state width="1296" height="171" key="GridCell.Tab.0.bottom" timestamp="1597029092101">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1296" height="296" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1596888453694" />
-    <state width="1296" height="296" key="GridCell.Tab.0.center" timestamp="1596888453694">
+    <state width="1296" height="171" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1597029092101" />
+    <state width="1296" height="171" key="GridCell.Tab.0.center" timestamp="1597029092101">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1296" height="296" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1596888453694" />
-    <state width="1296" height="296" key="GridCell.Tab.0.left" timestamp="1596888453693">
+    <state width="1296" height="171" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1597029092101" />
+    <state width="1296" height="171" key="GridCell.Tab.0.left" timestamp="1597029092101">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1296" height="296" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1596888453693" />
-    <state width="1296" height="296" key="GridCell.Tab.0.right" timestamp="1596888453694">
+    <state width="1296" height="171" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1597029092101" />
+    <state width="1296" height="171" key="GridCell.Tab.0.right" timestamp="1597029092101">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1296" height="296" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1596888453694" />
-    <state x="300" y="147" key="com.intellij.ide.util.TipDialog" timestamp="1596416320719">
+    <state width="1296" height="171" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1597029092101" />
+    <state x="300" y="147" key="com.intellij.ide.util.TipDialog" timestamp="1597021285244">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="300" y="147" key="com.intellij.ide.util.TipDialog/0.0.1366.728@0.0.1366.728" timestamp="1596416320719" />
+    <state x="300" y="147" key="com.intellij.ide.util.TipDialog/0.0.1366.728@0.0.1366.728" timestamp="1597021285244" />
     <state x="442" y="262" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1596527685660">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
