@@ -62,30 +62,24 @@ public:
     CFG_node(int jump = 0): jump(jump){}
     int latest_rd(){return instructions[instructions.size() - 1].rd;}
 };
-
 map<int, CFG_node> CFG;
-
 void print_dump(){
     printf(".dump\n\n");
     for(auto i = CFG.begin(); i != CFG.end(); ++i){
         if (i->second.jump >= 0) printf("%d > %d\n", i->first, i->second.jump);
         else if (i->second.jump == -2) printf("%d > exit\n", i->first);
         else printf("%d_\n", i->first);
-        for (int j = 0; j < i->second.instructions.size(); ++j){
+        for (int j = 0; j < i->second.instructions.size(); ++j)
             i->second.instructions[j].print_dump();
-        }
         if (i->second.jump >= 0 || i->second.jump == -2) printf("\n\n");
     }
 }
 
-//-------------------------------------------------------------------------------------
-
 int new_reg_ = 0, malloc_cnt = 1;
 bool isdigit_(string x){
     if (!isdigit(x[0]) && x[0] != '-') return 0;
-    for (int i = 1; i < strlen(x.c_str()); ++i){
+    for (int i = 1; i < strlen(x.c_str()); ++i)
         if (!isdigit(x[i])) return 0;
-    }
     return 1;
 }
 int new_reg(string val = ""){
@@ -101,7 +95,7 @@ int new_reg(string val = ""){
 }
 void log_error(const char *text_){
     printf("FAIL: %s\n", text_);
-    exit(-1073741819);
+    exit(1);
 }
 
 void LW_ins(CFG_node &node, int rs, int rd, int imm = 0){
@@ -112,11 +106,6 @@ void LW_ins(CFG_node &node, int rs, int rd, int imm = 0){
 void SW_ins(CFG_node &node, int rs1, int rs2, int imm = 0){
     uint32_t code = ((imm & 0b11111) << 7) | (((imm >> 5) & 0x7f) << 25) | (rs2 << 20) | (rs1 << 15) | (1 << 13) | 0b0100011;
     node.instructions.push_back(instruction(code, SW, 0, rs1, rs2, imm));
-}
-
-void MALLOC_ins(CFG_node &node, int rs, int rd, int imm = 0){
-    uint32_t code = (imm << 20) | (rs << 15) | (rd << 7) | (1 << 13);
-    node.instructions.push_back(instruction(code, MALLOC, rd, rs, 0, imm));
 }
 
 void BEQ_ins(CFG_node &node, int rs1, int rs2, int imm = 0){
@@ -134,6 +123,21 @@ void BNE_ins(CFG_node &node, int rs1, int rs2, int imm = 0){
 void JAL_ins(CFG_node &node, int jump){
     uint32_t code = ((jump & 0x7fe) << 20) | (((jump >> 20) & 1) << 31) | (((jump >> 11) & 1) << 20) | (((jump >> 12) & 0xff) << 12) | 0b1101111;
     node.instructions.push_back(instruction(code, JAL, 0, 0, 0, jump));
+}
+
+void ADD_ins(CFG_node &node, int rs1, int rs2, int rd){
+    uint32_t code = (rs2 << 20) | (rs1 << 15) | (rd << 7) | 0b0110011;
+    node.instructions.push_back(instruction(code, ADD_, rd, rs1, rs2));
+}
+
+void TIMES_ins(CFG_node &node, int rs1, int rs2, int rd){
+    uint32_t code = (1 << 29) | (rs2 << 20) | (rs1 << 15) | (rd << 7) | 0b0110011;
+    node.instructions.push_back(instruction(code, TIMES_, rd, rs1, rs2));
+}
+
+void SLT_ins(CFG_node &node, int rs1, int rs2, int rd){
+    uint32_t code = (rs2 << 20) | (rs1 << 15) | (rd << 7) | 0b0110011 | (2 << 12);
+    node.instructions.push_back(instruction(code, SLT, rd, rs1, rs2));
 }
 
 void load_imm(CFG_node &node, int imm, string rd = "", int rd__ = 0){
@@ -171,17 +175,15 @@ void new_mem_space(CFG_node &node, string val, OPCODE opcode, int rs = 0, int ne
         mem = val2mem[val];
         load_imm(node, (mem >> 12) << 12, "", tmp_rd);
     }
-    if (opcode == LW) {
-        LW_ins(node, node.latest_rd(), rs, mem - ((mem >> 12) << 12));
-    } else SW_ins(node, node.latest_rd(), rs, mem - ((mem >> 12) << 12));
+    if (opcode == LW) LW_ins(node, node.latest_rd(), rs, mem - ((mem >> 12) << 12));
+    else SW_ins(node, node.latest_rd(), rs, mem - ((mem >> 12) << 12));
 }
 
 void binop_ins(CFG_node &node, BINOP binop, string LHS, string RHS, int RHS_rd, int index_1_, int default_rd = 0, int LHS_addr = 0){
     uint32_t code = 0;
     int index_2 = 0;
-    if (isdigit_(LHS)) {
-        load_imm(node, strtod(LHS.c_str(), 0));
-    } else {
+    if (isdigit_(LHS)) load_imm(node, strtod(LHS.c_str(), 0));
+    else {
         if (LHS_addr){
             new_mem_space(node, LHS + "_addr", LW, new_reg());
             LW_ins(node, node.latest_rd(), new_reg());
@@ -195,8 +197,7 @@ void binop_ins(CFG_node &node, BINOP binop, string LHS, string RHS, int RHS_rd, 
         case ADD:
             if (!default_rd) rd = new_reg("(" + LHS + "+" + RHS + ")");
             else rd = default_rd;
-            code = (rs2 << 20) | (rs1 << 15) | (rd << 7) | 0b0110011;
-            node.instructions.push_back(instruction(code, ADD_, rd, rs1, rs2));
+            ADD_ins(node, rs1, rs2, rd);
             break;
         case SUB:
             if (!default_rd) rd = new_reg("(" + LHS + "-" + RHS + ")");
@@ -207,8 +208,7 @@ void binop_ins(CFG_node &node, BINOP binop, string LHS, string RHS, int RHS_rd, 
         case TIMES:
             if (!default_rd) rd = new_reg("(" + LHS + "*" + RHS + ")");
             else rd = default_rd;
-            code = (1 << 29) | (rs2 << 20) | (rs1 << 15) | (rd << 7) | 0b0110011;
-            node.instructions.push_back(instruction(code, TIMES_, rd, rs1, rs2));
+            TIMES_ins(node, rs1, rs2, rd);
             break;
         case DIVIDE:
             if (!default_rd) rd = new_reg("(" + LHS + "/" + RHS + ")");
@@ -226,10 +226,8 @@ void binop_ins(CFG_node &node, BINOP binop, string LHS, string RHS, int RHS_rd, 
             if (!default_rd) rd = new_reg("(" + LHS + "==" + RHS + ")");
             else rd = default_rd;
             rd1 = new_reg(), rd2 = new_reg();
-            code = (rs2 << 20) | (rs1 << 15) | (rd1 << 7) | 0b0110011 | (2 << 12);
-            node.instructions.push_back(instruction(code, SLT, rd1, rs1, rs2));
-            code = (rs1 << 20) | (rs2 << 15) | (rd2 << 7) | 0b0110011 | (2 << 12);
-            node.instructions.push_back(instruction(code, SLT, rd2, rs2, rs1));
+            SLT_ins(node, rs1, rs2, rd1);
+            SLT_ins(node, rs2, rs1, rd2);
             code = (rd2 << 20) | (rd1 << 15) | (rd << 7) | 0b0110011 | (6 << 12);
             node.instructions.push_back(instruction(code, OR_, rd, rd1, rd2));
             code = (1 << 20) | (rd << 15) | (rd << 7) | 0b0010011 | (4 << 12);
@@ -239,10 +237,8 @@ void binop_ins(CFG_node &node, BINOP binop, string LHS, string RHS, int RHS_rd, 
             if (!default_rd) rd = new_reg("(" + LHS + "!=" + RHS + ")");
             else rd = default_rd;
             rd1 = new_reg(), rd2 = new_reg();
-            code = (rs2 << 20) | (rs1 << 15) | (rd1 << 7) | 0b0110011 | (2 << 12);
-            node.instructions.push_back(instruction(code, SLT, rd1, rs1, rs2));
-            code = (rs1 << 20) | (rs2 << 15) | (rd2 << 7) | 0b0110011 | (2 << 12);
-            node.instructions.push_back(instruction(code, SLT, rd2, rs2, rs1));
+            SLT_ins(node, rs1, rs2, rd1);
+            SLT_ins(node, rs2, rs1, rd2);
             code = (rd2 << 20) | (rd1 << 15) | (rd << 7) | 0b0110011 | (6 << 12);
             node.instructions.push_back(instruction(code, OR_, rd, rd1, rd2));
             break;
@@ -261,28 +257,24 @@ void binop_ins(CFG_node &node, BINOP binop, string LHS, string RHS, int RHS_rd, 
         case GREATER:
             if (!default_rd) rd = new_reg("(" + LHS + ">" + RHS + ")");
             else rd = default_rd;
-            code = (rs1 << 20) | (rs2 << 15) | (rd << 7) | 0b0110011 | (2 << 12);
-            node.instructions.push_back(instruction(code, SLT, rd, rs2, rs1));
+            SLT_ins(node, rs2, rs1, rd);
             break;
         case GREATER_EQ:
             if (!default_rd) rd = new_reg("(" + LHS + ">=" + RHS + ")");
             else rd = default_rd;
-            code = (rs2 << 20) | (rs1 << 15) | (rd << 7) | 0b0110011 | (2 << 12);
-            node.instructions.push_back(instruction(code, SLT, rd, rs1, rs2));
+            SLT_ins(node, rs1, rs2, rd);
             code = (1 << 20) | (rd << 15) | (rd << 7) | 0b0010011 | (4 << 12);
             node.instructions.push_back(instruction(code, XORI, rd, rd, 0, 1));
             break;
         case SMALLER:
             if (!default_rd) rd = new_reg("(" + LHS + "<" + RHS + ")");
             else rd = default_rd;
-            code = (rs2 << 20) | (rs1 << 15) | (rd << 7) | 0b0110011 | (2 << 12);
-            node.instructions.push_back(instruction(code, SLT, rd, rs1, rs2));
+            SLT_ins(node, rs1, rs2, rd);
             break;
         case SMALLER_EQ:
             if (!default_rd) rd = new_reg("(" + LHS + "<=" + RHS + ")");
             else rd = default_rd;
-            code = (rs1 << 20) | (rs2 << 15) | (rd << 7) | 0b0110011 | (2 << 12);
-            node.instructions.push_back(instruction(code, SLT, rd, rs2, rs1));
+            SLT_ins(node, rs2, rs1, rd);
             code = (1 << 20) | (rd << 15) | (rd << 7) | 0b0010011 | (4 << 12);
             node.instructions.push_back(instruction(code, XORI, rd, rd, 0, 1));
             break;

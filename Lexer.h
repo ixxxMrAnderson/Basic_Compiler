@@ -1,7 +1,3 @@
-//
-// Created by 储浩天 on 2020/7/15.
-//
-
 #ifndef BASIC_COMPILER_LEXER_H
 #define BASIC_COMPILER_LEXER_H
 
@@ -30,8 +26,7 @@ int get_token(){
         cin.putback(tmp_char);
         number_token = strtod(num_str.c_str(), 0);
         return line_;
-    }
-    else if (isalpha(tmp_char)){
+    } else if (isalpha(tmp_char)){
         tmp_str = tmp_char;
         while (isalpha(tmp_char = getchar())) tmp_str += tmp_char;
         cin.putback(tmp_char);
@@ -53,13 +48,11 @@ int get_token(){
             if (tmp_char != 'F') printf("END&FOR not match\n");
             else getchar(), getchar();
             return END_;
-        }
-        else {
+        } else {
             identifier_token = tmp_str;
             return identifier_;
         }
-    }
-    else if (isdigit(tmp_char)){
+    } else if (isdigit(tmp_char)){
         string num_str;
         do {
             num_str += tmp_char;
@@ -68,8 +61,7 @@ int get_token(){
         cin.putback(tmp_char);
         number_token = strtod(num_str.c_str(), 0);
         return number_;
-    }
-    else if (tmp_char == EOF) return EOF_;
+    } else if (tmp_char == EOF) return EOF_;
     else if (tmp_char == '+'){binop_token = ADD; return binop_;}
     else if (tmp_char == '-'){
         tmp_char = getchar();
@@ -87,33 +79,27 @@ int get_token(){
             binop_token = SUB;
             return binop_;
         }
-    }
-    else if (tmp_char == '*'){binop_token = TIMES; return binop_;}
+    } else if (tmp_char == '*'){binop_token = TIMES; return binop_;}
     else if (tmp_char == '/'){binop_token = DIVIDE; return binop_;}
     else if (tmp_char == '%'){binop_token = MOD; return binop_;}
     else if (tmp_char == '<'){
         if ((tmp_char = getchar()) == '=') binop_token = SMALLER_EQ;
         else binop_token = SMALLER, cin.putback(tmp_char);
         return binop_;
-    }
-    else if (tmp_char == '>'){
+    } else if (tmp_char == '>'){
         if ((tmp_char = getchar()) == '=') binop_token = GREATER_EQ;
         else binop_token = GREATER, cin.putback(tmp_char);
         return binop_;
-    }
-    else if (tmp_char == '='){
+    } else if (tmp_char == '='){
         if ((tmp_char = getchar()) == '='){binop_token = EQ; return binop_;}
         else {cin.putback(tmp_char); return int('=');}
-    }
-    else if (tmp_char == '!'){
+    } else if (tmp_char == '!'){
         if ((tmp_char = getchar()) == '='){binop_token = NOT_EQ; return binop_;}
         else {cin.putback(tmp_char); return int('!');}
-    }
-    else if (tmp_char == '&'){
+    } else if (tmp_char == '&'){
         if ((tmp_char = getchar()) == '&'){binop_token = AND; return binop_;}
         else {cin.putback(tmp_char); return int('&');}
-    }
-    else if (tmp_char == '|'){
+    } else if (tmp_char == '|'){
         if ((tmp_char = getchar()) == '|'){binop_token = OR; return binop_;}
         else {cin.putback(tmp_char); return int('|');}
     } else return int(tmp_char);

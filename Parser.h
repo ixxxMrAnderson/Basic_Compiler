@@ -4,9 +4,7 @@
 #include "Lexer.h"
 
 int cur_token;
-int get_next_token(){
-    return cur_token = get_token();
-}
+int get_next_token(){return cur_token = get_token();}
 
 unique_ptr<expr_AST> expr_parse();
 unique_ptr<expr_AST> number_parse(){
@@ -49,7 +47,6 @@ unique_ptr<expr_AST> primary_parse(){
             return_ = nullptr;
     }
     while (cur_token == '[') return_->push(move(paren_parse()));
-    //if (return_->indexes.size()) printf("primary_parse: %s\n", return_->generate_str().c_str());
     return return_;
 }
 
@@ -130,9 +127,8 @@ unique_ptr<goto_AST> goto_parse(){
 
 unique_ptr<exit_AST> exit_parse(){
     get_next_token(); //Eat EXIT.
-    if (cur_token != number_ && cur_token != identifier_ && cur_token != '('){
+    if (cur_token != number_ && cur_token != identifier_ && cur_token != '(')
         log_error("exit");
-    }
     return make_unique<exit_AST>(move(expr_parse()));
 }
 
@@ -143,7 +139,6 @@ unique_ptr<if_AST> if_parse(){
     get_next_token(); //Eat THEN.
     if (cur_token != number_) log_error("short circuit evaluation");
     unique_ptr<expr_AST> if_goto(move(number_parse()));
-    if (cur_token != line_) cout << cur_token << endl, cout << number_token << endl;
     return make_unique<if_AST>(move(if_expr), move(if_goto));
 }
 
@@ -157,7 +152,6 @@ unique_ptr<for_AST> for_parse(int for_line_){
     auto continue_gate = expr_parse();
     auto tmp_for = make_unique<for_AST>(move(it_stmt), move(continue_gate), for_line_);
     while (cur_token != END_) {
-        if (cur_token != line_) cout << cur_token << endl;
         line = primary_parse()->value();
         if (!line) log_error("Line number must be a constant integer");
         if (cur_token == END_) break;
