@@ -12,17 +12,31 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="096f8c77-de77-476d-9ea8-dadcb9ebebe7" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/Basic Complier.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Basic Complier.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/AST.h" beforeDir="false" afterPath="$PROJECT_DIR$/AST.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Instruction Generator.h" beforeDir="false" afterPath="$PROJECT_DIR$/Instruction Generator.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Lexer.h" beforeDir="false" afterPath="$PROJECT_DIR$/Lexer.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Parser.h" beforeDir="false" afterPath="$PROJECT_DIR$/Parser.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmake-build-debug/Basic_Compiler.cbp" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/Basic_Compiler.cbp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/Basic_Compiler.exe" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/Basic_Compiler.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/Basic_Complier.cbp" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/Basic_Complier.cbp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.15.3/CMakeCCompiler.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.15.3/CMakeCCompiler.cmake" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.15.3/CMakeCXXCompiler.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.15.3/CMakeCXXCompiler.cmake" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.15.3/CMakeRCCompiler.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.15.3/CMakeRCCompiler.cmake" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.15.3/CMakeSystem.cmake" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.15.3/CMakeSystem.cmake" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.15.3/CompilerIdC/CMakeCCompilerId.c" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.15.3/CompilerIdC/CMakeCCompilerId.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.15.3/CompilerIdCXX/CMakeCXXCompilerId.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.15.3/CompilerIdCXX/CMakeCXXCompilerId.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/main.cpp.obj" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/main.cpp.obj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/objects.a" beforeDir="false" afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Basic_Compiler.dir/objects.a" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testcases/sema/sema_11.txt" beforeDir="false" afterPath="$PROJECT_DIR$/testcases/sema/sema_11.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testcases/sema/sema_12.txt" beforeDir="false" afterPath="$PROJECT_DIR$/testcases/sema/sema_12.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testcases/sema/sema_13.txt" beforeDir="false" afterPath="$PROJECT_DIR$/testcases/sema/sema_13.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testcases/sema/sema_14.txt" beforeDir="false" afterPath="$PROJECT_DIR$/testcases/sema/sema_14.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/testcases/sema/sema_2.txt" beforeDir="false" afterPath="$PROJECT_DIR$/testcases/sema/sema_2.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -96,6 +110,7 @@
       <workItem from="1597051710133" duration="4225000" />
       <workItem from="1597108993534" duration="7608000" />
       <workItem from="1597194272296" duration="2188000" />
+      <workItem from="1597367782558" duration="1641000" />
     </task>
     <servers />
   </component>
@@ -107,30 +122,30 @@
       <screen x="0" y="0" width="1366" height="728" />
     </state>
     <state x="349" y="150" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1366.728@0.0.1366.728" timestamp="1596791579506" />
-    <state x="413" y="62" key="FileChooserDialogImpl" timestamp="1597195244303">
+    <state x="413" y="62" key="FileChooserDialogImpl" timestamp="1597368027840">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="413" y="62" key="FileChooserDialogImpl/0.0.1366.728@0.0.1366.728" timestamp="1597195244303" />
-    <state width="1296" height="214" key="GridCell.Tab.0.bottom" timestamp="1597194657179">
+    <state x="413" y="62" key="FileChooserDialogImpl/0.0.1366.728@0.0.1366.728" timestamp="1597368027840" />
+    <state width="1313" height="82" key="GridCell.Tab.0.bottom" timestamp="1597369586166">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1296" height="214" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1597194657179" />
-    <state width="1296" height="214" key="GridCell.Tab.0.center" timestamp="1597194657179">
+    <state width="1313" height="82" key="GridCell.Tab.0.bottom/0.0.1366.728@0.0.1366.728" timestamp="1597369586166" />
+    <state width="1313" height="82" key="GridCell.Tab.0.center" timestamp="1597369586166">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1296" height="214" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1597194657179" />
-    <state width="1296" height="214" key="GridCell.Tab.0.left" timestamp="1597194657179">
+    <state width="1313" height="82" key="GridCell.Tab.0.center/0.0.1366.728@0.0.1366.728" timestamp="1597369586166" />
+    <state width="1313" height="82" key="GridCell.Tab.0.left" timestamp="1597369586166">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1296" height="214" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1597194657179" />
-    <state width="1296" height="214" key="GridCell.Tab.0.right" timestamp="1597194657179">
+    <state width="1313" height="82" key="GridCell.Tab.0.left/0.0.1366.728@0.0.1366.728" timestamp="1597369586166" />
+    <state width="1313" height="82" key="GridCell.Tab.0.right" timestamp="1597369586166">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state width="1296" height="214" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1597194657179" />
-    <state x="300" y="147" key="com.intellij.ide.util.TipDialog" timestamp="1597194293569">
+    <state width="1313" height="82" key="GridCell.Tab.0.right/0.0.1366.728@0.0.1366.728" timestamp="1597369586166" />
+    <state x="300" y="147" key="com.intellij.ide.util.TipDialog" timestamp="1597367786465">
       <screen x="0" y="0" width="1366" height="728" />
     </state>
-    <state x="300" y="147" key="com.intellij.ide.util.TipDialog/0.0.1366.728@0.0.1366.728" timestamp="1597194293569" />
+    <state x="300" y="147" key="com.intellij.ide.util.TipDialog/0.0.1366.728@0.0.1366.728" timestamp="1597367786464" />
     <state x="442" y="262" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1596527685660">
       <screen x="0" y="0" width="1366" height="728" />
     </state>

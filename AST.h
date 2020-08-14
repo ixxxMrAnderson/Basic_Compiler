@@ -42,6 +42,7 @@ public:
     string name(){return atom_expr->atom_name;}
     void push(unique_ptr<expr_AST> index_){indexes.push_back(move(index_));}
     void cal_addr(CFG_node &node, string rd_ = "addr_1"){
+        if (array_size.find(name()) == array_size.end()) log_error("while calling operator []");
         if (array_size[name()][0] == -1 && val2mem.find(name() + "_size_0") == val2mem.end()) log_error("while calling operator []");
         if (malloc_map.find(name()) != malloc_map.end()){
             int rs = new_reg(to_string(malloc_map[name()])), rd = new_reg(rd_);

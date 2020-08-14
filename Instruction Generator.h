@@ -295,7 +295,7 @@ void binop_ins(CFG_node &node, BINOP binop, string LHS, string RHS, int RHS_rd, 
 
 int passed_ = 0;
 void generate_code(){
-    printf(".data\n\n");
+//    printf(".data\n\n");
     bool new_block = 1;
     int addr = 0, jump, cnt_print = 0;
     for(auto i = CFG.begin(); i != CFG.end(); ++i) {
@@ -325,7 +325,8 @@ void generate_code(){
             printf("\n\n");
         }
     }
-    printf("13 05 F0 0F\n\nmemory_space_used_%08X(byte)\n", passed_);
+    printf("13 05 F0 0F");
+//    printf("\n\nmemory_space_used_%08X(byte)\n", passed_);
 }
 
 #endif //BASIC_COMPLIER_INSTRUCTION_GENERATOR_H
